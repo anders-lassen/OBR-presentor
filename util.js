@@ -29,6 +29,7 @@ var util = {
         item_listner: false
     },
     hooks: [],
+    meta: {},
     setupTestStuff: async function () {
         $("#container").append(`<br><br><br><button id="debugger">debug</button>`)
         $(document).on("click", "#debugger", function (e) {
@@ -59,7 +60,7 @@ var util = {
         util.winResize()
         await util.getRoomMeta();
 
-        if (typeof util.meta.screen_id != "undefined" && util.meta.screen_id != 0) {
+        if (typeof util.meta.screen_id != "undefined" && util?.meta?.screen_id != 0) {
             util.inited.screen_user_selected = true
         }
         if (typeof util.meta.screen_size != "undefined" && util.meta.screen_size.width != 0) {

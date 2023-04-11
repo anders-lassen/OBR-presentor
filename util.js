@@ -451,7 +451,7 @@ var util = {
     },
     getRoomMeta: async function () {
         util.meta = await OBR.room.getMetadata()
-        util.meta = util.meta["dk.planeshifter.scrying"]
+        util.meta = util.meta["dk.planeshifter.scrying"] || {}
         return util.meta
     },
     getDifference: (a, b) =>

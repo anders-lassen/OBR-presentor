@@ -1,9 +1,9 @@
 {
-    "name": "Planeshift",
-    "version": "1.0.0",
+    "name": "Planeshift BETA",
+    "version": "1.0.1",
     "manifest_version": 1,
     "action": {
-        "title": "Planeshift",
+        "title": "Planeshift BETA",
         "icon": "./icon.svg",
         "popover": "/",
         "height": 600,

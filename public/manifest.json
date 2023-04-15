@@ -1,10 +1,13 @@
 {
-    "name": "Planeshift BETA",
-    "version": "1.0.1",
-    "manifest_version": 1,
+    "name": "Mystic Mirror",
+    "version": "1.0.2",
+    "manifest_version": 2,
+    "icon": "http://localhost:5173/crystal-ball-white.png",
+    "description": "Mystic Mirror is a simple plugin that allows you to see your future.",
+    "author": "OriginalCopy",
     "action": {
-        "title": "Planeshift BETA",
-        "icon": "./icon.svg",
+        "title": "Mystic Mirror",
+        "icon": "./crystal-ball.png",
         "popover": "/",
         "height": 600,
         "width": 400

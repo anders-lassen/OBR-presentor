@@ -26,11 +26,14 @@ var util = {
         screen_user_selected: false,
         screen_size_set: false,
         metadata_listner: false,
-        item_listner: false
+        item_listner: false,
+        presentation_enabled: false
     },
     hooks: [],
     meta: {},
     setupTestStuff: async function () {
+        if (location.toString().indexOf("localhost") == -1) return
+
         $("#container").append(`<br><br><br><button id="debugger">debug</button>`)
         $(document).on("click", "#debugger", function (e) {
             debugger
@@ -67,10 +70,6 @@ var util = {
             util.inited.screen_size_set = true
         }
 
-        if (!util.inited.screen_user_selected) $("#container").append(`<div class="warning">Select a user to use as screen presentator`)
-        if (!util.inited.screen_size_set) $("#container").append(`<div class="warning">Input the size for the screen presentator`)
-
-
         if (!util.inited.metadata_listner) {
             util.inited.metadata_listner = true
             await OBR.room.onMetadataChange(async (metadata) => {
@@ -97,6 +96,10 @@ var util = {
             return
         }
 
+        if (!util.inited.screen_user_selected) $("#container").append(`<div class="warning" id="screen_user_selected">Select a user to use as screen presentator`)
+        if (!util.inited.screen_size_set) $("#container").append(`<div class="warning" id="screen_size_set">Input the size for the screen presentator`)
+        if (!util.inited.presentation_enabled) $("#container").append(`<div class="warning" id="presentation_enabled">Input the url for the screen presentator`)
+
         // 0 - setup presentation tools
         await util.setupPresentationTools()
 
@@ -110,13 +113,21 @@ var util = {
 
         await util.checkFollow()
 
+        await util.setupClearMeta()
         util.setupTestStuff()
     },
     initPlayer: async function () {
         console.log("Initializing screen control")
+        $("#container").append(`<div id="playerScreen"><img id="logo" style="width: 30vw;" src="./crystal-ball-white.png" /></div>`)
         await util.setupScreenControl()
 
         await util.setupTestStuff()
+
+        if (await OBR.action.isOpen()) {
+            await OBR.action.setHeight(1)
+            await OBR.action.setWidth(1)
+            $("body").css("min-width", "unset")
+        }
     },
     isPlayer: async function () {
         var role = await OBR.player.getRole()
@@ -129,22 +140,34 @@ var util = {
     setupPresentationTools: async function () {
         $("#container").append(`
         <div id="present_tool">
+            <span id="nonAvailWarn" style="display: none;">No presentation displays available.</span>
+
+            <div id="presUrl" style="display: none;">
+                <input id="urlInput" type="text" placeholder="https://www.owlbear.app/room/xxxxxxxx/YyyyyYyyyy">
+                <button id="urlBtn">Save</button>
+            </div>
+
             <button id="presentBtn" style="display: none;">Present</button>
 
             <button id="reconnectBtn" style="display: none;">Reconnect</button>
 
             <button id="disconnectBtn" style="display: none;">Disconnect</button>
             <button id="stopBtn" style="display: none;">Stop</button>
-            <button id="reconnectBtn" style="display: none;">Reconnect</button>
         </div>
         `)
 
         const presUrls = [
-            "https://www.owlbear.app/room/nUdv0VTqmoDJ/TheHuffySilly"
+            util.meta?.presUrl || "/",
+            //     "https://www.owlbear.app/room/nUdv0VTqmoDJ/TheHuffySilly"
             //     "https://tracelink.dk/"
             //     "presentation.html",
             //     "alternate.html",
         ];
+
+        const nonAvailWarn = document.getElementById("nonAvailWarn");
+        const urlInput = document.getElementById("urlInput");
+        const urlBtn = document.getElementById("urlBtn");
+        const presUrl = document.getElementById("presUrl");
 
         // Monitor availability of presentation displays
         const presentBtn = document.getElementById("presentBtn");
@@ -153,70 +176,128 @@ var util = {
         const reconnectBtn = document.querySelector("#reconnectBtn");
         const disconnectBtn = document.querySelector("#disconnectBtn");
 
+        var request;
+        let connection;
+        util.inited.presentation_enabled = false;
+
         // Show or hide present button depending on display availability
         const handleAvailabilityChange = (available) => {
-            presentBtn.style.display = available ? "inline" : "none";
+            if (!util.inited.presentation_enabled) {
+                urlInput.style.display = available ? "inline" : "none";
+                urlBtn.style.display = available ? "inline" : "none";
+            }
+            nonAvailWarn.style.display = available ? "none" : "inline";
+
+            presUrl.style.display = available ? "inline" : "none";
         };
 
+        urlBtn.onclick = async () => {
+            // check if urlInput is valid url
+            if (urlInput.value == "" || !urlInput.value.match(/http(s)?:\/\/(www\.)?owlbear\.app\/room\/.*\/.*/)) {
+                var err_str = "Please input a valid URL for the room."
+                OBR.notification.show(err_str, "ERROR")
+                return
+            }
+
+            await util.setRoomMeta({ "presUrl": urlInput.value })
+
+            presUrls.pop()
+            presUrls.push(urlInput.value);
+            checkAvailability()
+
+            enablePresentation();
+        }
+
         // Promise is resolved as soon as the presentation display availability is known.
-        const request = new PresentationRequest(presUrls);
-        request
-            .getAvailability()
-            .then((availability) => {
-                handleAvailabilityChange(availability.value);
-                availability.onchange = () => {
+        const checkAvailability = () => {
+            request = new PresentationRequest(presUrls);
+            request
+                .getAvailability()
+                .then((availability) => {
                     handleAvailabilityChange(availability.value);
-                };
-            })
-            .catch(() => {
-                handleAvailabilityChange(true);
-            });
+                    availability.onchange = () => {
+                        handleAvailabilityChange(availability.value);
+                    };
+                })
+                .catch(() => {
+                    handleAvailabilityChange(true);
+                });
+        }
+
+        checkAvailability()
+
+        if (typeof util.meta?.presUrl != "undefined") {
+            enablePresentation()
+        }
+
         // Starting a new presentation
         presentBtn.onclick = () => {
+            //     const presId = util.meta?.presId || null;
+
+            //     if (presId) {
+            //         request
+            //             .reconnect(presId)
+            //             // The new connection to the presentation will be passed to
+            //             // setConnection on success.
+            //             .then(setConnection);
+            //         // No connection found for presUrl and presId, or an error occurred.
+            //     } else {
             // Start new presentation.
             request
                 .start()
                 .then(setConnection);
+            //     }
         };
         // ---
 
-        // Reconnect to a presentation --
-        const reconnect = () => {
-            // read presId from localStorage if exists
-            const presId = localStorage["presId"];
-            // presId is mandatory when reconnecting to a presentation.
-            if (presId) {
-                request
-                    .reconnect(presId)
-                    // The new connection to the presentation will be passed to
-                    // setConnection on success.
-                    .then(setConnection);
-                // No connection found for presUrl and presId, or an error occurred.
-            }
-        };
-        // On navigation of the controller, reconnect automatically.
-        document.addEventListener("DOMContentLoaded", reconnect);
-        // Or allow manual reconnection.
-        reconnectBtn.onclick = reconnect
-        // -- Reconnect to a presentation
+        async function enablePresentation() {
+            urlInput.style.display = "none";
+            urlBtn.style.display = "none";
+            presUrl.style.display = "none";
+            presentBtn.style.display = "inline";
+            $("#presentation_enabled").remove()
+            util.inited.presentation_enabled = true
 
-        // Presentation initiation by the controlling UA
-        navigator.presentation.defaultRequest = new PresentationRequest(presUrls);
-        navigator.presentation.defaultRequest.onconnectionavailable = (evt) => {
-            setConnection(evt.connection);
-        };
+            // Reconnect to a presentation --
+            const reconnect = () => {
+                // read presId from util.meta if exists
+                // const presId = localStorage["presId"];
+                const presId = util.meta?.presId || null;
+                // presId is mandatory when reconnecting to a presentation.
+                if (presId) {
+                    request
+                        .reconnect(presId)
+                        // The new connection to the presentation will be passed to
+                        // setConnection on success.
+                        .then(setConnection);
+                    // No connection found for presUrl and presId, or an error occurred.
+                }
+            };
+            // On navigation of the controller, reconnect automatically.
+            document.addEventListener("DOMContentLoaded", reconnect);
+            // Or allow manual reconnection.
+            reconnectBtn.onclick = reconnect
 
-        let connection;
+            reconnect()
+            // -- Reconnect to a presentation
 
-        stopBtn.onclick = () => {
-            connection?.terminate();
-        };
+            // Presentation initiation by the controlling UA
+            navigator.presentation.defaultRequest = new PresentationRequest(presUrls);
+            navigator.presentation.defaultRequest.onconnectionavailable = (evt) => {
+                setConnection(evt.connection);
+            };
 
-        disconnectBtn.onclick = () => {
-            connection?.close();
-        };
 
-        function setConnection(newConnection) {
+            stopBtn.onclick = () => {
+                connection?.terminate();
+            };
+
+            disconnectBtn.onclick = () => {
+                connection?.close();
+            };
+
+        }
+        async function setConnection(newConnection) {
             // Disconnect from existing presentation, if not attempting to reconnect
             if (
                 connection &&
@@ -229,19 +310,23 @@ var util = {
 
             // Set the new connection and save the presentation ID
             connection = newConnection;
-            localStorage["presId"] = connection.id;
+            //     localStorage["presId"] = connection.id;
+            await util.setRoomMeta({ presId: connection.id });
 
             function showConnectedUI() {
                 // Allow the user to disconnect from or terminate the presentation
                 stopBtn.style.display = "inline";
                 disconnectBtn.style.display = "inline";
                 reconnectBtn.style.display = "none";
+                presentBtn.style.display = "none";
             }
 
             function showDisconnectedUI() {
                 disconnectBtn.style.display = "none";
                 stopBtn.style.display = "none";
-                reconnectBtn.style.display = localStorage["presId"] ? "inline" : "none";
+                reconnectBtn.style.display = util.meta?.presId ? "inline" : "none";
+                presentBtn.style.display = util.meta?.presId ? "inline" : "none";
+                // reconnectBtn.style.display = localStorage["presId"] ? "inline" : "none";
             }
 
             // Monitor the connection state
@@ -257,14 +342,20 @@ var util = {
                 connection.send("Say hello");
             };
 
+            //     if already connected, show connected UI
+            if (connection.state === "connected")
+                connection.onconnect()
+
             connection.onclose = () => {
                 connection = null;
                 showDisconnectedUI();
             };
 
-            connection.onterminate = () => {
+            connection.onterminate = async () => {
                 // Remove presId from localStorage if exists
-                delete localStorage["presId"];
+                // delete localStorage["presId"];
+                await util.setRoomMeta({ presId: null });
+
                 connection = null;
                 showDisconnectedUI();
             };
@@ -279,23 +370,34 @@ var util = {
         <div id="playerlist_cont">
             <h3>Players:</h3>
             <div id="playerlist"></div>
+            <hr>
         </div>`)
         this.players = await OBR.party.getPlayers()
         util.updatePlayerlist()
 
         OBR.action.onOpenChange((isOpen) => {
             console.log("open changed")
-            if (!util.inited.playerlist) {
-                OBR.party.onChange(async (party) => {
-                    // this.players = await OBR.party.getPlayers()
-                    util.players = party
-                    console.log(party)
-                    // update playerlist
-                    util.updatePlayerlist()
-                })
-                util.inited.playerlist = true
-            }
         })
+
+        if (!util.inited.playerlist) {
+            OBR.party.onChange(async (party) => {
+                console.log("party changed")
+                // this.players = await OBR.party.getPlayers()
+                util.players = party
+                console.log(party)
+                // update playerlist
+                util.updatePlayerlist()
+            })
+            OBR.player.onChange((player) => {
+                console.log("player changed")
+                // debugger
+
+                console.log(party)
+                // update playerlist
+                util.updatePlayerlist()
+            }),
+                util.inited.playerlist = true
+        }
 
         $(document).on("click", "#playerlist button", async function (e) {
             var id = $(e.target).attr("id");
@@ -338,14 +440,26 @@ var util = {
         // refresh position
         // remove user as screen
         // move to specific x,y
-        $("#container").append(`<br>
+        $("#container").append(`<div id="screen_control">
             <h3>Screen Control</h3>
-                <div class="screen_inp_wrap"><label for="width">Width: </label><input class="screen_size" id="width" placeholder="0.00" value="${util.meta?.screen_size?.width}"/></div>
-                <div class="screen_inp_wrap"><label for="height">Height: </label><input class="screen_size" id="height" placeholder="0.00" value="${util.meta?.screen_size?.height || ""}" /></div><br>
+            <table class="screen_wrap">
+                <tr class="screen_inp_wrap">
+                    <td><label for="width">Width: </label></td>
+                    <td><input class="screen_size" id="width" placeholder="0.00" value="${util.meta?.screen_size?.width || ""}"/></td>
+
+                    <td rowspan=2><button id="switch_wh">▴▾</button></td>
+                </tr>
+                <tr class="screen_inp_wrap">
+                    <td><label for="height">Height: </label></td>
+                    <td><input class="screen_size" id="height" placeholder="0.00" value="${util.meta?.screen_size?.height || ""}" /></td>
+                </tr>
+            </table>
             <button id="toggle_follow" class="following">Follow</button>
             <button id="refresh_pos" class="">Refresh</button><br>
             <button id="rm_screenuser" class="red">Remove</button>
-            `)
+            
+            <hr>
+        </div>`)
         // <label for="pos_x">X:</label><input id="pos_x" placeholder="0.00" /><br>
         // <label for="pos_y">Y:</label><input id="pos_y" placeholder="0.00" /><br><button id="animate_pos" class="red">Move user</button><br>
 
@@ -364,23 +478,38 @@ var util = {
         })
         // $(document).on("click", "button#animate_pos", async function (evt) {
         // })
+        $(document).on("click", "button#switch_wh", async function (evt) {
+            $("input#height").val(util.meta.screen_size.width)
+            $("input#width").val(util.meta.screen_size.height)
+
+            await saveSizes()
+        })
         $(document).on("keyup", "input.screen_size", async function (evt) {
             if (util.save_tm)
                 clearTimeout(util.save_tm)
             // save width and height
             util.save_tm = setTimeout(async () => {
-                let ttt = $("input.screen_size")
-                let new_sizes = {}
-                ttt.map((i, e) => { return new_sizes[e.id] = e.value })
-                // debugger
-
-                await util.setRoomMeta({
-                    screen_size: new_sizes
-                })
-
-                await OBR.notification.show("Sizes saved", "SUCCESS")
+                await saveSizes()
             }, 300)
         })
+
+        async function saveSizes() {
+            let ttt = $("input.screen_size")
+            let new_sizes = {}
+            ttt.map((i, e) => { return new_sizes[e.id] = e.value })
+            // debugger
+
+            if (new_sizes.width != "" || new_sizes.height != "")
+                $("#screen_size_set").hide()
+
+
+            await util.setRoomMeta({
+                screen_size: new_sizes
+            })
+
+            await OBR.notification.show("Sizes saved", "SUCCESS")
+            await util.updateCurrSelectedScreenEl()
+        }
         $(document).on("click", "button#rm_screenuser", async function (evt) {
             await util.setRoomMeta({
                 screen_id: 0
@@ -586,8 +715,10 @@ var util = {
             var extra_cls = ""
 
             // // debugger
-            if (util.meta.screen_id == p.id)
+            if (util.meta.screen_id == p.id) {
+                $("#screen_user_selected").hide()
                 extra_cls = " isScreen"
+            }
 
             var el_str = `<button id="${p.id}" class="${extra_cls}" style="background: ${p.color}">${p.name}</button>`
 
@@ -606,6 +737,22 @@ var util = {
         util.meta = await OBR.room.getMetadata()
         util.meta = util.meta["dk.planeshifter.scrying"] || {}
         return util.meta
+    },
+    setupClearMeta: async function () {
+        $("#container").append(`<button id="clear_meta" class="red">Clear Meta</button>`)
+        $("#clear_meta").click(async function () {
+            if (await confirm("Are you sure you want to clear all metadata?")) {
+
+                await OBR.room.setMetadata({
+                    "dk.planeshifter.scrying": {}
+                })
+                util.meta = await util.getRoomMeta()
+
+                setTimeout(() => {
+                    location.reload()
+                }, 500);
+            }
+        })
     },
     getDifference: (a, b) =>
         Object.fromEntries(Object.entries(b).filter(([key, val]) => key in a && a[key] !== val))

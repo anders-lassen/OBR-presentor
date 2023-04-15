@@ -97,8 +97,184 @@ var util = {
             return
         }
 
+        // 0 - setup presentation tools
+        await util.setupPresentationTools()
 
         // 1 - list of players
+        await util.setupPlayerList()
+
+        // 2 - setup controlpanel
+        await util.setupScreenControl()
+
+
+
+        await util.checkFollow()
+
+        util.setupTestStuff()
+    },
+    initPlayer: async function () {
+        console.log("Initializing screen control")
+        await util.setupScreenControl()
+
+        await util.setupTestStuff()
+    },
+    isPlayer: async function () {
+        var role = await OBR.player.getRole()
+
+        if (role == "PLAYER")
+            return true
+
+        return false
+    },
+    setupPresentationTools: async function () {
+        $("#container").append(`
+        <div id="present_tool">
+            <button id="presentBtn" style="display: none;">Present</button>
+
+            <button id="reconnectBtn" style="display: none;">Reconnect</button>
+
+            <button id="disconnectBtn" style="display: none;">Disconnect</button>
+            <button id="stopBtn" style="display: none;">Stop</button>
+            <button id="reconnectBtn" style="display: none;">Reconnect</button>
+        </div>
+        `)
+
+        const presUrls = [
+            "https://www.owlbear.app/room/nUdv0VTqmoDJ/TheHuffySilly"
+            //     "https://tracelink.dk/"
+            //     "presentation.html",
+            //     "alternate.html",
+        ];
+
+        // Monitor availability of presentation displays
+        const presentBtn = document.getElementById("presentBtn");
+        // The Disconnect and Stop buttons are visible if there is a connected presentation
+        const stopBtn = document.querySelector("#stopBtn");
+        const reconnectBtn = document.querySelector("#reconnectBtn");
+        const disconnectBtn = document.querySelector("#disconnectBtn");
+
+        // Show or hide present button depending on display availability
+        const handleAvailabilityChange = (available) => {
+            presentBtn.style.display = available ? "inline" : "none";
+        };
+
+        // Promise is resolved as soon as the presentation display availability is known.
+        const request = new PresentationRequest(presUrls);
+        request
+            .getAvailability()
+            .then((availability) => {
+                handleAvailabilityChange(availability.value);
+                availability.onchange = () => {
+                    handleAvailabilityChange(availability.value);
+                };
+            })
+            .catch(() => {
+                handleAvailabilityChange(true);
+            });
+        // Starting a new presentation
+        presentBtn.onclick = () => {
+            // Start new presentation.
+            request
+                .start()
+                .then(setConnection);
+        };
+        // ---
+
+        // Reconnect to a presentation --
+        const reconnect = () => {
+            // read presId from localStorage if exists
+            const presId = localStorage["presId"];
+            // presId is mandatory when reconnecting to a presentation.
+            if (presId) {
+                request
+                    .reconnect(presId)
+                    // The new connection to the presentation will be passed to
+                    // setConnection on success.
+                    .then(setConnection);
+                // No connection found for presUrl and presId, or an error occurred.
+            }
+        };
+        // On navigation of the controller, reconnect automatically.
+        document.addEventListener("DOMContentLoaded", reconnect);
+        // Or allow manual reconnection.
+        reconnectBtn.onclick = reconnect
+        // -- Reconnect to a presentation
+
+        // Presentation initiation by the controlling UA
+        navigator.presentation.defaultRequest = new PresentationRequest(presUrls);
+        navigator.presentation.defaultRequest.onconnectionavailable = (evt) => {
+            setConnection(evt.connection);
+        };
+
+        let connection;
+
+        stopBtn.onclick = () => {
+            connection?.terminate();
+        };
+
+        disconnectBtn.onclick = () => {
+            connection?.close();
+        };
+
+        function setConnection(newConnection) {
+            // Disconnect from existing presentation, if not attempting to reconnect
+            if (
+                connection &&
+                connection !== newConnection &&
+                connection.state !== "closed"
+            ) {
+                connection.onclose = undefined;
+                connection.close();
+            }
+
+            // Set the new connection and save the presentation ID
+            connection = newConnection;
+            localStorage["presId"] = connection.id;
+
+            function showConnectedUI() {
+                // Allow the user to disconnect from or terminate the presentation
+                stopBtn.style.display = "inline";
+                disconnectBtn.style.display = "inline";
+                reconnectBtn.style.display = "none";
+            }
+
+            function showDisconnectedUI() {
+                disconnectBtn.style.display = "none";
+                stopBtn.style.display = "none";
+                reconnectBtn.style.display = localStorage["presId"] ? "inline" : "none";
+            }
+
+            // Monitor the connection state
+            connection.onconnect = () => {
+                showConnectedUI();
+
+                // Register message handler
+                connection.onmessage = (message) => {
+                    console.log(`Received message: ${message.data}`);
+                };
+
+                // Send initial message to presentation page
+                connection.send("Say hello");
+            };
+
+            connection.onclose = () => {
+                connection = null;
+                showDisconnectedUI();
+            };
+
+            connection.onterminate = () => {
+                // Remove presId from localStorage if exists
+                delete localStorage["presId"];
+                connection = null;
+                showDisconnectedUI();
+            };
+        }
+        //   connection.send('{"string": "你好，世界!", "lang": "zh-CN"}');
+        //   connection.send('{"string": "こんにちは、世界!", "lang": "ja"}');
+        //   connection.send('{"string": "안녕하세요, 세계!", "lang": "ko"}');
+        //   connection.send('{"string": "Hello, world!", "lang": "en-US"}');
+    },
+    setupPlayerList: async function () {
         $("#container").append(`
         <div id="playerlist_cont">
             <h3>Players:</h3>
@@ -131,29 +307,6 @@ var util = {
 
             await util.updatePlayerlist()
         })
-
-        // 2 - setup controlpanel
-        await util.setupScreenControl()
-
-
-
-        await util.checkFollow()
-
-        util.setupTestStuff()
-    },
-    initPlayer: async function () {
-        console.log("Initializing screen control")
-        await util.setupScreenControl()
-
-        await util.setupTestStuff()
-    },
-    isPlayer: async function () {
-        var role = await OBR.player.getRole()
-
-        if (role == "PLAYER")
-            return true
-
-        return false
     },
     setupScreenControl: async function () {
         if (await util.isPlayer()) {
@@ -187,8 +340,8 @@ var util = {
         // move to specific x,y
         $("#container").append(`<br>
             <h3>Screen Control</h3>
-                <label for="width">Width: </label><input class="screen_size" id="width" placeholder="0.00" value="${util.meta?.screen_size?.width}"/><br>
-                <label for="height">Height: </label><input class="screen_size" id="height" placeholder="0.00" value="${util.meta?.screen_size?.height || ""}" /><br><br>
+                <div class="screen_inp_wrap"><label for="width">Width: </label><input class="screen_size" id="width" placeholder="0.00" value="${util.meta?.screen_size?.width}"/></div>
+                <div class="screen_inp_wrap"><label for="height">Height: </label><input class="screen_size" id="height" placeholder="0.00" value="${util.meta?.screen_size?.height || ""}" /></div><br>
             <button id="toggle_follow" class="following">Follow</button>
             <button id="refresh_pos" class="">Refresh</button><br>
             <button id="rm_screenuser" class="red">Remove</button>

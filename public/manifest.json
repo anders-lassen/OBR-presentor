@@ -2,7 +2,7 @@
     "name": "Mystic Mirror",
     "version": "1.0.2",
     "manifest_version": 2,
-    "icon": "http://localhost:5173/crystal-ball-white.png",
+    "icon": "https://obr-presentor.vercel.app/crystal-ball-white.png",
     "description": "Mystic Mirror is a simple plugin that allows you to see your future.",
     "author": "OriginalCopy",
     "action": {

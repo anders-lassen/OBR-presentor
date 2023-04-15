@@ -146,6 +146,10 @@ hr {
     margin-bottom: 3px;
 }
 
+.screen_size {
+    width: 143px;
+}
+
 @media (prefers-color-scheme: light) {
     :root {
         color: #213547;

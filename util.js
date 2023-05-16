@@ -392,7 +392,7 @@ var util = {
                 console.log("player changed")
                 // debugger
 
-                console.log(party)
+                console.log(player)
                 // update playerlist
                 util.updatePlayerlist()
             }),
@@ -587,6 +587,7 @@ var util = {
 
                         item.width = (_w * dpi) // scale.parsed.multiplier
                         item.height = (_h * dpi) // scale.parsed.multiplier
+                        item.visible = false; // hide the item
                     }
                 });
             },

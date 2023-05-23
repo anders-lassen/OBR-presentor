@@ -7,7 +7,7 @@
     "author": "OriginalCopy",
     "action": {
         "title": "Mystic Mirror",
-        "icon": "./crystal-ball.png",
+        "icon": "/crystal-ball.png",
         "popover": "/",
         "height": 600,
         "width": 400

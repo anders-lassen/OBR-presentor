@@ -100,8 +100,12 @@ var util = {
         if (!util.inited.screen_size_set) $("#container").append(`<div class="warning" id="screen_size_set">Input the size for the screen presentator`)
         if (!util.inited.presentation_enabled) $("#container").append(`<div class="warning" id="presentation_enabled">Input the url for the screen presentator`)
 
+        try {
         // 0 - setup presentation tools
         await util.setupPresentationTools()
+        } catch (error) {
+            console.error("Error setting up presentation tools", error)
+        }
 
         // 1 - list of players
         await util.setupPlayerList()

@@ -740,7 +740,7 @@ var util = {
                 extra_cls = " isScreen"
             }
 
-            var el_str = `<button id="${p.id}" class="${extra_cls}" style="background: ${p.color}">${p.name}</button>`
+            var el_str = `<button id="${p.id}" class="${extra_cls}" style="color: ${p.color}; border-color: ${p.color};">${p.name}</button>`
 
             $("#playerlist").append(el_str)
         })

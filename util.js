@@ -389,6 +389,7 @@ var util = {
         <div id="playerlist_cont">
             <h3>Players:</h3>
             <div id="playerlist"></div>
+            <button id="rm_screenuser" class="red">Clear</button>
             <hr>
         </div>`)
         this.players = await OBR.party.getPlayers()
@@ -427,6 +428,8 @@ var util = {
             })
 
             await util.updatePlayerlist()
+          
+            await OBR.notification.show("Screen user successfully added. Updates will now be exclusive to this player.", "SUCCESS")
         })
     },
     setupScreenControl: async function () {
@@ -434,6 +437,9 @@ var util = {
             // activate listner
             console.log(util.meta.screen_el)
             async function updatePos() {
+                // if a screen user is selected only update that user otherwise return
+                if (util.meta.screen_id && await OBR.player.getId() != util.meta.screen_id) return
+
                 if (typeof util.meta.screen_el != "undefined") {
                     // var pos_el = await OBR.scene.items.getItems(util.meta.screen_el.items.map(function (a) {
                     //     return a.id
@@ -487,7 +493,7 @@ var util = {
             </table>
             <button id="toggle_follow" class="following">Follow</button>
             <button id="refresh_pos" class="">Refresh</button><br>
-            <button id="rm_screenuser" class="red">Remove</button>
+            <!-- <button id="rm_screenuser" class="red">Remove</button> -->
             
             <hr>
         </div>`)
@@ -541,11 +547,12 @@ var util = {
             await OBR.notification.show("Sizes saved", "SUCCESS")
             await util.updateCurrSelectedScreenEl()
         }
+
         $(document).on("click", "button#rm_screenuser", async function (evt) {
             await util.setRoomMeta({
                 screen_id: 0
             })
-            await OBR.notification.show("Screen user removed", "ERROR")
+            await OBR.notification.show("Screen user cleared!", "ERROR")
             await util.updatePlayerlist()
         })
 

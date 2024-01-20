@@ -95,20 +95,20 @@ var util = {
             util.initPlayer();
             return
         }
-
-        if (!util.inited.screen_user_selected) $("#container").append(`<div class="warning" id="screen_user_selected">Select a user to use as screen presentator`)
-        if (!util.inited.screen_size_set) $("#container").append(`<div class="warning" id="screen_size_set">Input the size for the screen presentator`)
-     
+        
         if (!util.inited.presentation_enabled && typeof PresentationRequest != "undefined") {
-            $("#container").append(`<div class="warning" id="presentation_enabled">Input the url for the screen presentator`)
+            $("#container").append(`<div class="warning" id="presentation_enabled">Input the url for the screen presentator</div>`)
 
-        try {
-        // 0 - setup presentation tools
-        await util.setupPresentationTools()
-        } catch (error) {
-            console.error("Error setting up presentation tools", error)
+            try {
+                // 0 - setup presentation tools
+                await util.setupPresentationTools()
+            } catch (error) {
+                console.error("Error setting up presentation tools", error)
+            }
         }
-        }
+
+        // if (!util.inited.screen_user_selected) $("#container").append(`<div class="warning" id="screen_user_selected">Select a user to use as screen presentator</div>`)
+        if (!util.inited.screen_size_set) $("#container").append(`<div class="warning" id="screen_size_set">Input the size for the screen presentator</div>`)
 
         // 1 - list of players
         await util.setupPlayerList()
@@ -150,7 +150,7 @@ var util = {
             <span id="nonAvailWarn" style="display: none;">No presentation displays available.</span>
 
             <div id="presUrl" style="display: none;">
-                <input id="urlInput" type="text" placeholder="https://www.owlbear.app/room/xxxxxxxx/YyyyyYyyyy">
+                <input id="urlInput" type="text" placeholder="A7W0upefDl8r/TheMysticMirror">
                 <button id="urlBtn">Save</button>
             </div>
 
@@ -199,12 +199,24 @@ var util = {
         };
 
         urlBtn.onclick = async () => {
+            // check if input is XXXYYY/NameOfTheRoom
+            if (urlInput.value == "" || urlInput.value.match(/^[A-z|0-9]*\/[A-z]*$/)) {
+                // add preffix
+                urlInput.value = "https://www.owlbear.app/room/" + urlInput.value
+            }
+            
+            // check if url is owlbear\.rodeo
+            if (urlInput.value == "" || urlInput.value.match(/owlbear\.rodeo/))
+                urlInput.value = urlInput.value.replace("owlbear.rodeo", "owlbear.app")
+
             // check if urlInput is valid url
             if (urlInput.value == "" || !urlInput.value.match(/http(s)?:\/\/(www\.)?owlbear\.app\/room\/.*\/.*/)) {
                 var err_str = "Please input a valid URL for the room."
                 OBR.notification.show(err_str, "ERROR")
                 return
             }
+
+            urlInput.value = urlInput.value + "?name=Mystic+Mirror&join=true&presentation=true"
 
             await util.setRoomMeta({ "presUrl": urlInput.value })
 

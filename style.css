@@ -76,7 +76,7 @@ h1 {
 }
 
 .screen_inp_wrap {
-    text-align: right;
+    text-align: left;
 }
 
 input {
@@ -273,24 +273,110 @@ button.dimmedBtn:hover {
 
 button.following {
     background-color: rgb(0, 175, 0);
-    color: rgb(255,255,255);
+    color: rgb(255, 255, 255);
     border: 1px rgb(0, 175, 0) solid;
 }
 
 button.following:hover {
     background-color: rgb(0, 175, 0);
     color: rgb(175, 255, 175);
-    border: 1px rgb(255,255,255) solid;
+    border: 1px rgb(255, 255, 255) solid;
 }
 
-button.not_following, button.red {
+button.not_following,
+button.red {
     background-color: rgb(175, 0, 0);
-    color: rgb(255,255,255);
+    color: rgb(255, 255, 255);
     border: 1px rgb(175, 0, 0) solid;
 }
 
-button.not_following:hover, button.red:hover {
+button.not_following:hover,
+button.red:hover {
     background-color: rgb(175 0 0);
     color: rgb(255, 175, 175);
-    border: 1px rgb(255,255,255) solid;
+    border: 1px rgb(255, 255, 255) solid;
+}
+
+/* SELECT OVERRIDES */
+/*the container must be positioned relative:*/
+.custom-select {
+    position: relative;
+}
+
+.custom-select select {
+    display: none;
+    /*hide original SELECT element:*/
+}
+
+.select-selected {
+    background-color: transparent;
+}
+
+/*style the arrow inside the select element:*/
+.select-selected:after {
+    position: absolute;
+    content: "";
+    top: 14px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-color: #fff transparent transparent transparent;
+}
+
+/*point the arrow upwards when the select box is open (active):*/
+.select-selected.select-arrow-active:after {
+    border-color: transparent transparent #fff transparent;
+    top: 7px;
+}
+
+/*style the items (options), including the selected item:*/
+.select-items div,
+.select-selected {
+    color: #ffffff;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-color: transparent transparent rgba(255, 255, 255, 1) transparent;
+    cursor: pointer;
+    user-select: none;
+}
+
+.select-selected {
+    margin-bottom: 7px;
+}
+
+.select-items div {
+    border-color: transparent;
+    background-color: rgba(30, 34, 49, 0.75);
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px -1px, rgba(0, 0, 0, 0.14) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 1px 10px 0px;
+    backdrop-filter: blur(30px);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+/*style items (options):*/
+.select-items {
+    position: absolute;
+    background-color: rgba(30, 34, 49, 1);
+
+
+    border: 0;
+    border-color: transparent;
+    border-radius: 16px;
+    /* background-color: rgba(187, 153, 255, 0.5); */
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
+}
+
+/*hide the items when the select box is closed:*/
+.select-hide {
+    display: none;
+}
+
+.select-items div:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.same-as-selected {
+    background-color: (187, 153, 255, 0.16);
 }

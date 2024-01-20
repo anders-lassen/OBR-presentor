@@ -451,7 +451,21 @@ var util = {
                     var min_width = (_w * dpi) // scale.parsed.multiplier
                     var min_height = (_h * dpi) // scale.parsed.multiplier
 
-                    var sel_bounds = util.meta.screen_el.selectionBounds
+                    if (util.meta.screen_el.player_moved) {
+                        // Player moved the token, center and update
+                        var new_selection_bounds = await OBR.scene.items.getItemBounds([util.meta.screen_el.id])
+                        var sel_bounds = new_selection_bounds
+
+                        await util.setRoomMeta({
+                            screen_el: {
+                                id: util.meta.screen_el.id,
+                                items: util.meta.screen_el.items,
+                                selectionBounds: new_selection_bounds,
+                                player_moved: false
+                            }
+                        })
+                    } else
+                        var sel_bounds = util.meta.screen_el.selectionBounds
 
                     if (sel_bounds.max.x - sel_bounds.min.x < min_width || sel_bounds.max.y - sel_bounds.min.y < min_height) {
                         sel_bounds.max = { y: sel_bounds.center.y + (min_height / 2), x: sel_bounds.center.x + (min_width / 2) }
@@ -463,6 +477,12 @@ var util = {
             }
             util.hooks.push({
                 group: "metaChanged",
+                role: "PLAYER",
+                func: updatePos,
+                args: []
+            })
+            util.hooks.push({
+                group: "itemsChanged",
                 role: "PLAYER",
                 func: updatePos,
                 args: []
@@ -681,20 +701,36 @@ var util = {
                     return items.arrayOfProp("id").includes(el.id) ? el : false
                 })
 
-                var diff = util.getDifference(new_screen_itm, old_screen_el)
+                var update_user = util.players.find((a) => a.id == new_screen_itm.lastModifiedUserId)
 
-                if (typeof diff.position != "undefined") {
-                    // save new pos
-                    var new_selection_bounds = await OBR.scene.items.getItemBounds([new_screen_itm.id])
-                    // debugger
-
+                if (update_user && update_user.role == "PLAYER") {
                     await util.setRoomMeta({
                         screen_el: {
+                            id: new_screen_itm.id,
                             items: util.meta.screen_el.items,
-                            selectionBounds: new_selection_bounds
+                            selectionBounds: false,
+                            player_moved: true
                         }
                     })
+                } else {
+                    var diff = util.getDifference(new_screen_itm, old_screen_el)
+
+                    if (typeof diff.position != "undefined") {
+                        // save new pos
+                        var new_selection_bounds = await OBR.scene.items.getItemBounds([new_screen_itm.id])
+                        // debugger
+
+                        await util.setRoomMeta({
+                            screen_el: {
+                                id: new_screen_itm.id,
+                                items: util.meta.screen_el.items,
+                                selectionBounds: new_selection_bounds,
+                                player_moved: false
+                            }
+                        })
+                    }
                 }
+
 
                 // updatePos()
 

@@ -108,7 +108,6 @@ var util = {
         }
 
         // if (!util.inited.screen_user_selected) $("#container").append(`<div class="warning" id="screen_user_selected">Select a user to use as screen presentator</div>`)
-        if (!util.inited.screen_size_set) $("#container").append(`<div class="warning" id="screen_size_set">Input the size for the screen presentator</div>`)
 
         // 1 - list of players
         await util.setupPlayerList()
@@ -116,11 +115,11 @@ var util = {
         // 2 - setup controlpanel
         await util.setupScreenControl()
 
-
-
         await util.checkFollow()
 
         await util.setupClearMeta()
+
+        util.select_overrides()
         util.setupTestStuff()
     },
     initPlayer: async function () {
@@ -479,7 +478,32 @@ var util = {
         // move to specific x,y
         $("#container").append(`<div id="screen_control">
             <h3>Screen Control</h3>
+            ${(!util.inited.screen_size_set ? `<div class="warning" id="screen_size_set">Input the size for the screen presentator</div>` : "")}
             <table class="screen_wrap">
+                <tr class="screen_inp_wrap">
+                    <td colspan=3>
+                    <label for="selector">Screensizes: </label><br>
+                        <div class=custom-select>
+                            <select id="selector" class="screen_select">
+                                <option value="0">Manual</option>
+                                <option value="24">24" (20.9 x 11.7)</option>
+                                <option value="27">27" (23.5 x 13.2)</option>
+                                <option value="32">32" (25.6 x 19.2)</option>
+                                <option value="40">40" (32.0 x 24.0)</option>
+                                <option value="43">43" (34.4 x 25.8)</option>
+                                <option value="48">48" (38.4 x 28.8)</option>
+                                <option value="50">50" (40.0 x 30.0)</option>
+                                <option value="55">55" (44.0 x 33.0)</option>
+                                <option value="60">60" (48.0 x 36.0)</option>
+                                <option value="65">65" (52.0 x 39.0)</option>
+                                <option value="70">70" (56.0 x 42.0)</option>
+                                <option value="75">75" (60.0 x 45.0)</option>
+                                <option value="80">80" (64.0 x 48.0)</option>
+                                <option value="85">85" (68.0 x 51.0)</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
                 <tr class="screen_inp_wrap">
                     <td><label for="width">Width: </label></td>
                     <td><input class="screen_size" id="width" placeholder="0.00" value="${util.meta?.screen_size?.width || ""}"/></td>
@@ -499,7 +523,30 @@ var util = {
         </div>`)
         // <label for="pos_x">X:</label><input id="pos_x" placeholder="0.00" /><br>
         // <label for="pos_y">Y:</label><input id="pos_y" placeholder="0.00" /><br><button id="animate_pos" class="red">Move user</button><br>
+        $(document).on("change", "#screen_control select#selector", async function (evt) {
+            var value = this.value
+            var screensizes = {
+                24: {w: 20.9, h: 11.7},
+                27: {w: 23.5, h: 13.2},
+                32: {w: 25.6, h: 19.2},
+                40: {w: 32.0, h: 24.0},
+                43: {w: 34.4, h: 25.8},
+                48: {w: 38.4, h: 28.8},
+                50: {w: 40.0, h: 30.0},
+                55: {w: 44.0, h: 33.0},
+                60: {w: 48.0, h: 36.0},
+                65: {w: 52.0, h: 39.0},
+                70: {w: 56.0, h: 42.0},
+                75: {w: 60.0, h: 45.0},
+                80: {w: 64.0, h: 48.0},
+                85: {w: 68.0, h: 51.0},
+            }
+            // screen was selected via table update inputs
+            $("input#height").val(screensizes[value].h)
+            $("input#width").val(screensizes[value].w)
 
+            await saveSizes()
+        })
         $(document).on("click", "button#toggle_follow", async function (evt) {
             // debugger
             var following = !util.meta.screen_follow || false
@@ -836,6 +883,90 @@ var util = {
                 }
             });
     },
+    select_overrides: function (params) {
+        var x, i, j, l, ll, selElmnt, a, b, c;
+        /* Look for any elements with the class "custom-select": */
+        x = document.getElementsByClassName("custom-select");
+        l = x.length;
+        for (i = 0; i < l; i++) {
+            selElmnt = x[i].getElementsByTagName("select")[0];
+            ll = selElmnt.length;
+            /* For each element, create a new DIV that will act as the selected item: */
+            a = document.createElement("DIV");
+            a.setAttribute("class", "select-selected");
+            a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
+            x[i].appendChild(a);
+            /* For each element, create a new DIV that will contain the option list: */
+            b = document.createElement("DIV");
+            b.setAttribute("class", "select-items select-hide");
+            for (j = 0; j < ll; j++) {
+                /* For each option in the original select element,
+                create a new DIV that will act as an option item: */
+                c = document.createElement("DIV");
+                c.innerHTML = selElmnt.options[j].innerHTML;
+                c.addEventListener("click", function (e) {
+                    /* When an item is clicked, update the original select box,
+                    and the selected item: */
+                    var y, i, k, s, h, sl, yl;
+                    s = this.parentNode.parentNode.getElementsByTagName("select")[0];
+                    sl = s.length;
+                    h = this.parentNode.previousSibling;
+                    for (i = 0; i < sl; i++) {
+                        if (s.options[i].innerHTML == this.innerHTML) {
+                            s.selectedIndex = i;
+                            h.innerHTML = this.innerHTML;
+                            y = this.parentNode.getElementsByClassName("same-as-selected");
+                            yl = y.length;
+                            for (k = 0; k < yl; k++) {
+                                y[k].removeAttribute("class");
+                            }
+                            this.setAttribute("class", "same-as-selected");
+                            break;
+                        }
+                    }
+                    $(s).trigger("change")
+                    
+                    h.click();
+                });
+                b.appendChild(c);
+            }
+            x[i].appendChild(b);
+            a.addEventListener("click", function (e) {
+                /* When the select box is clicked, close any other select boxes,
+                and open/close the current select box: */
+                e.stopPropagation();
+                closeAllSelect(this);
+                this.nextSibling.classList.toggle("select-hide");
+                this.classList.toggle("select-arrow-active");
+            });
+        }
+    
+        function closeAllSelect(elmnt) {
+            /* A function that will close all select boxes in the document,
+            except the current select box: */
+            var x, y, i, xl, yl, arrNo = [];
+            x = document.getElementsByClassName("select-items");
+            y = document.getElementsByClassName("select-selected");
+            xl = x.length;
+            yl = y.length;
+            for (i = 0; i < yl; i++) {
+                if (elmnt == y[i]) {
+                    arrNo.push(i)
+                } else {
+                    y[i].classList.remove("select-arrow-active");
+                }
+            }
+            for (i = 0; i < xl; i++) {
+                if (arrNo.indexOf(i)) {
+                    x[i].classList.add("select-hide");
+                }
+            }
+        }
+    
+        /* If the user clicks anywhere outside the select box,
+        then close all select boxes: */
+        document.addEventListener("click", closeAllSelect);
+    }
 }
 
 export { util }

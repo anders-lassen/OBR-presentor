@@ -114,6 +114,8 @@ var util = {
 
         // 2 - setup controlpanel
         await util.setupScreenControl()
+        
+        await util.setupScenes()
 
         await util.checkFollow()
 
@@ -746,6 +748,133 @@ var util = {
             },
             args: []
         })
+    },
+    setupScenes: async function () {
+        if (typeof util.meta.scenes == "undefined")
+             util.meta.scenes = []
+
+        $("#container").append(`<div id="scene_control">
+        <h3>Scenes</h3>
+        <div class="scene_wrap">
+            <div id="scenelist"></div>
+            <br>
+            <button id="edit_scenes" class="locked">🔒 Edit scenes</button>
+            <button id="rm_scenes" class="red">Clear</button>
+            <hr>
+        </div>
+        </div>`)
+
+        $(document).on("click", "#scene_control button#edit_scenes", async function (e) {
+            util.edit_scene = !util.edit_scene
+            if (util.edit_scene) {
+                // make scene names editable
+                $("#scenelist button span").attr("contenteditable", true)
+                $("#scenelist button").attr("disabled", true)
+
+                $("#scene_control button#edit_scenes").text("🔓 Edit scenes")
+            } else {
+                $("#scenelist button span").attr("contenteditable", false)
+                $("#scenelist button").attr("disabled", false)
+                $("#scene_control button#edit_scenes").text("🔒 Edit scenes")
+                
+                await util.updateScenelist()
+            }
+        })
+        
+        $(document).on("keyup", "#scenelist button span", async function (e) {
+            var id = $(this).parents("button").attr("id")
+            var idx = $(this).parents("#scenelist").find($(this).parents("button")).index()
+
+            var name = $(this).text()
+
+            var scene = util.meta.scenes.find((a) => a.id == id && util.meta.scenes.indexOf(a) == idx)
+            scene.name = name
+        })
+
+        $(document).on("click", "#scene_control button#rm_scenes", async function (e) {
+            if (await confirm("Are you sure you want to clear all scenes?")) {
+                // remove scenes
+                util.meta.scenes = []
+                await util.updateScenelist()
+            }
+        })
+
+        $(document).on("click", "#scenelist button, #scenelist button span", async function (e) {
+            var id = $(e.target).attr("id") || $(e.target).parents("button").attr("id");
+            if (!id) return
+
+            console.log(`selected scene ${id} as screen`)
+
+            await util.setRoomMeta({
+                screen_el: util.meta.scenes.find((a) => a.id == id)._
+            })
+
+            await util.updateScenelist()
+        //     await util.updateCurrSelectedScreenEl()
+
+            await OBR.notification.show("Using scene", "SUCCESS")
+        })
+
+        // setup add to scene button
+        await OBR.contextMenu.create({
+            id: "dk.planeshifter.sceneAdd",
+            icons: [
+                {
+                    icon: "/scene-add.svg",
+                    label: "Add2Scene",
+                    filter: {}
+                },
+            ],
+            async onClick(_, elementId) {
+                util.meta.scenes.push({
+                    id: _.items[0].id,
+                    name: _.items[0].name,
+                    _
+                })
+
+                await OBR.notification.show("Item added scene", "SUCCESS")
+
+                await util.updateScenelist()
+            },
+        });
+        
+        await util.updateScenelist()
+    },
+    updateScenelist: async function () {
+            await util.setRoomMeta({
+                scenes: util.meta.scenes
+            });
+
+            
+        $("#scenelist").empty()
+            
+        if (util.meta.scenes.length == 0)
+            $("#scenelist").append(`<button>Use 'Add2Scene' to preset scenes</button>`)
+        else
+            util.meta.scenes.forEach(function (p) {
+                /* 
+                color: "#519E00"
+                connectionId: "3724933883"
+                id: "f68080a1-f372-4cfe-871d-a1f0b18cc56a"
+                metadata: {}
+                name: "Gibbering Mouther"
+                role: "PLAYER" 
+                selection: undefined
+                syncView: false */
+                if (p.role == "PLAYER") return;
+
+                var extra_cls = ""
+
+                // debugger
+                if (util.meta.screen_id == p.id) {
+                    // $("#screen_user_selected").hide()
+                    extra_cls = " isScreen"
+                }
+
+                var el_str = `<button id="${p.id}" class="${extra_cls}"><span contenteditable=false>${p.name}</span></button>`
+
+                $("#scenelist").append(el_str)
+            })
     },
     checkFollow: async function () {
         var following = util.meta.screen_follow || false

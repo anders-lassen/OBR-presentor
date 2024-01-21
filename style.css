@@ -380,3 +380,11 @@ button.red:hover {
 .same-as-selected {
     background-color: (187, 153, 255, 0.16);
 }
+
+span[contenteditable=true]:before {
+    content: "✏️ "
+}
+
+span[contenteditable=true] {
+    border-bottom: 1px solid rgb(187,153,255);
+}

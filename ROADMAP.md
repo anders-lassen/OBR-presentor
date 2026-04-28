@@ -4,6 +4,7 @@
 - [ ] ...
 
 ## Planned
+- [ ] **Node 24.x** — Update to Node 24.x
 - [ ] **In-app tour / docs** — guided walkthrough or help panel so new users can get started without reading a manual; include tip that an incognito window logged in as a player can serve as the dedicated screen/view; link to a video walkthrough
 - [ ] **All-players follow** — GM can push their current view/waypoint to all connected players simultaneously
 - [ ] **Waypoint fog & item toggles** — each waypoint can store a set of fog/item visibility rules applied automatically when the waypoint is activated

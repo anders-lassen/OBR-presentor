@@ -20,7 +20,24 @@ export function useGmItemWatcher() {
             const movedItem = items.find((i: any) => i.id === waypointId)
             if (movedItem) {
                 const newBounds = await OBR.scene.items.getItemBounds([waypointId])
-                if (newBounds) await OBR.viewport.animateToBounds(JSON.parse(JSON.stringify(newBounds)))
+                if (newBounds) {
+                    let bounds: any = JSON.parse(JSON.stringify(newBounds))
+                    const _w = Number(store.meta.screen_size?.width ?? 0)
+                    const _h = Number(store.meta.screen_size?.height ?? 0)
+                    if (_w > 0 && _h > 0) {
+                        const dpi = await OBR.scene.grid.getDpi()
+                        const bw = _w * dpi
+                        const bh = _h * dpi
+                        bounds = {
+                            ...bounds,
+                            min: { x: bounds.center.x - bw / 2, y: bounds.center.y - bh / 2 },
+                            max: { x: bounds.center.x + bw / 2, y: bounds.center.y + bh / 2 },
+                            width: bw,
+                            height: bh,
+                        }
+                    }
+                    await OBR.viewport.animateToBounds(bounds)
+                }
             }
         }
 

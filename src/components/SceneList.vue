@@ -4,8 +4,11 @@ import OBR from '@owlbear-rodeo/sdk'
 import { store } from '../composables/useStore'
 import { useObrMeta } from '../composables/useObrMeta'
 import type { Waypoint } from '../types'
+import { useGmItemWatcher } from '../composables/useGmItemWatcher'
 
 const { setRoomMeta } = useObrMeta()
+const { handleGmItems } = useGmItemWatcher()
+
 const editMode = ref(false)
 
 const waypoints = computed<Waypoint[]>(() => store.meta.waypoints ?? [])
@@ -20,7 +23,8 @@ async function toggleWaypointFollowGm() {
         const activeWaypoint = waypoints.value.find(w => w.id === activeWaypointId.value)
         if (activeWaypoint) {
             const freshBounds = await OBR.scene.items.getItemBounds([activeWaypoint.id])
-            if (freshBounds) await OBR.viewport.animateToBounds(JSON.parse(JSON.stringify(freshBounds)))
+            if (freshBounds) await handleGmItems(await OBR.scene.items.getItems() as any[])
+
         }
     }
 }

@@ -9,7 +9,7 @@ declare const PresentationRequest: any
 
 const { setRoomMeta } = useObrMeta()
 
-const ROOM_PATTERN = /^https?:\/\/(www\.)?owlbear\.app\/room\/[^/?#]+\/[^/?#]+/
+const ROOM_PATTERN = /^https?:\/\/(www\.)?owlbear\.(app|rodeo)\/room\/[^/?#]+\/[^/?#]+/
 
 const urlInputValue = ref('')
 const isAvailable = ref(false)

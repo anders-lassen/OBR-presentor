@@ -42,9 +42,9 @@ async function toggleWaypointFollow() {
 }
 
 // Turn off waypoint follow when no waypoint is active
-watch(activeWaypointId, (id) => {
+watch(activeWaypointId, async (id) => {
     if (!id && waypointFollow.value) {
-        setRoomMeta({ screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
+        await setRoomMeta({ screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
     }
 })
 

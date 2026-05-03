@@ -62,8 +62,8 @@ OBR.onReady(async () => {
                     automatically or snaps to any waypoint you place on the map.
                 </p>
                 <div class="hero-meta">
-                    <span>Live room metadata sync</span>
-                    <span>Player-aware controls</span>
+                    <span>Live room view sync</span>
+                    <span>GM controls player view</span>
                     <span>Waypoint navigation</span>
                 </div>
             </template>

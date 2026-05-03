@@ -44,7 +44,10 @@ async function syncCurrentView() {
         screen_el: { id: 'viewport-sync', items: [], selectionBounds: bounds, player_moved: false },
         refresh: Math.random(),
     })
-    await OBR.notification.show('View synced to all players', 'SUCCESS')
+    const message = store.meta?.screen_id
+        ? 'View synced to selected player'
+        : 'View synced to all players'
+    await OBR.notification.show(message, 'SUCCESS')
 }
 </script>
 

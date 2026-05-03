@@ -405,8 +405,7 @@ span[contenteditable=true] {
 }
 
 /* ─── Light theme ────────────────────────────────────────── */
-@media (prefers-color-scheme: light) {
-    :root {
+[data-theme="light"] {
     --bg-base: rgba(245, 246, 255, 0.8);
     --bg-pane: #f0f1fc;
     --bg-pane-strong: #e8eaf6;
@@ -435,30 +434,29 @@ span[contenteditable=true] {
     --scrollbar-thumb: rgba(109, 40, 217, 0.2);
     --scrollbar-thumb-hover: rgba(109, 40, 217, 0.4);
     --option-hover-color: rgba(0, 0, 0, 0.87);
-    }
+}
 
-    .warning {
-        background: rgba(254, 226, 226, 0.8);
-        color: #991b1b;
-        border-color: rgba(220, 38, 38, 0.5);
-    }
+[data-theme="light"] .warning {
+    background: rgba(254, 226, 226, 0.8);
+    color: #991b1b;
+    border-color: rgba(220, 38, 38, 0.5);
+}
 
-    button.dimmedBtn {
-        border-color: rgba(0, 0, 0, 0.2);
-        color: var(--text-secondary);
-    }
+[data-theme="light"] button.dimmedBtn {
+    border-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-secondary);
+}
 
-    button.dimmedBtn:hover {
-        border-color: rgba(0, 0, 0, 0.35);
-        color: var(--text-primary);
-        background-color: rgba(0, 0, 0, 0.04);
-    }
+[data-theme="light"] button.dimmedBtn:hover {
+    border-color: rgba(0, 0, 0, 0.35);
+    color: var(--text-primary);
+    background-color: rgba(0, 0, 0, 0.04);
+}
 
-    div#leftbar span#resize {
-        color: rgba(109, 40, 217, 0.65);
-    }
+[data-theme="light"] div#leftbar span#resize {
+    color: rgba(109, 40, 217, 0.65);
+}
 
-    span[contenteditable=true] {
-        border-bottom-color: rgba(109, 40, 217, 0.7);
-    }
+[data-theme="light"] span[contenteditable=true] {
+    border-bottom-color: rgba(109, 40, 217, 0.7);
 }

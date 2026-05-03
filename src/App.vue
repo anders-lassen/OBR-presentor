@@ -13,6 +13,12 @@ OBR.onReady(async () => {
     await getRoomMeta()
     store.role = (await OBR.player.getRole()) as 'GM' | 'PLAYER'
 
+    const applyTheme = (theme: { mode: string }) => {
+        document.documentElement.dataset.theme = theme.mode === 'LIGHT' ? 'light' : 'dark'
+    }
+    applyTheme(await OBR.theme.getTheme())
+    OBR.theme.onChange(applyTheme)
+
     OBR.room.onMetadataChange(async () => {
         await getRoomMeta()
     })

@@ -6,6 +6,11 @@ const { setRoomMeta, getRoomMeta } = useObrMeta()
 
 OBR.onReady(async () => {
     await getRoomMeta()
+    const applyTheme = (theme: { mode: string }) => {
+        document.documentElement.dataset.theme = theme.mode === 'LIGHT' ? 'light' : 'dark'
+    }
+    applyTheme(await OBR.theme.getTheme())
+    OBR.theme.onChange(applyTheme)
 })
 
 async function setShapeAsTracker() {

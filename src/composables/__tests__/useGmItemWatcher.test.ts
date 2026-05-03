@@ -14,6 +14,9 @@ vi.mock('@owlbear-rodeo/sdk', () => ({
             getMetadata: vi.fn(),
             setMetadata: vi.fn(),
         },
+        viewport: {
+            animateToBounds: vi.fn(),
+        },
     },
 }))
 
@@ -97,6 +100,66 @@ describe('useGmItemWatcher', () => {
                     [META_KEY]: expect.objectContaining({ screen_el: expect.objectContaining({ player_moved: true }) }),
                 })
             )
+        })
+    })
+
+    describe('handleGmItems – GM follows waypoint viewport (screen_waypoint_follow_gm)', () => {
+        it('animates viewport to waypoint bounds when the waypoint item is in the changed items', async () => {
+            vi.mocked(OBR.scene.isReady).mockResolvedValue(true)
+            const waypointBounds = makeBounds(10, 20)
+            vi.mocked(OBR.scene.items.getItemBounds).mockResolvedValue(waypointBounds as any)
+            vi.mocked(OBR.viewport.animateToBounds).mockResolvedValue(undefined)
+            store.meta = {
+                screen_waypoint_follow_gm: true,
+                screen_waypoint_id: 'wp-1',
+            }
+
+            const { handleGmItems } = useGmItemWatcher()
+            await handleGmItems([{ id: 'wp-1' }])
+
+            expect(OBR.scene.items.getItemBounds).toHaveBeenCalledWith(['wp-1'])
+            expect(OBR.viewport.animateToBounds).toHaveBeenCalledWith(waypointBounds)
+        })
+
+        it('does not animate viewport when screen_waypoint_follow_gm is false', async () => {
+            vi.mocked(OBR.scene.isReady).mockResolvedValue(true)
+            store.meta = {
+                screen_waypoint_follow_gm: false,
+                screen_waypoint_id: 'wp-1',
+            }
+
+            const { handleGmItems } = useGmItemWatcher()
+            await handleGmItems([{ id: 'wp-1' }])
+
+            expect(OBR.viewport.animateToBounds).not.toHaveBeenCalled()
+        })
+
+        it('does not animate viewport when the waypoint item is not in the changed items', async () => {
+            vi.mocked(OBR.scene.isReady).mockResolvedValue(true)
+            store.meta = {
+                screen_waypoint_follow_gm: true,
+                screen_waypoint_id: 'wp-1',
+            }
+
+            const { handleGmItems } = useGmItemWatcher()
+            await handleGmItems([{ id: 'other-item' }])
+
+            expect(OBR.viewport.animateToBounds).not.toHaveBeenCalled()
+        })
+
+        it('does not animate viewport when getItemBounds returns null', async () => {
+            vi.mocked(OBR.scene.isReady).mockResolvedValue(true)
+            vi.mocked(OBR.scene.items.getItemBounds).mockResolvedValue(null as any)
+            store.meta = {
+                screen_waypoint_follow_gm: true,
+                screen_waypoint_id: 'wp-1',
+            }
+
+            const { handleGmItems } = useGmItemWatcher()
+            await handleGmItems([{ id: 'wp-1' }])
+
+            expect(OBR.scene.items.getItemBounds).toHaveBeenCalledWith(['wp-1'])
+            expect(OBR.viewport.animateToBounds).not.toHaveBeenCalled()
         })
     })
 

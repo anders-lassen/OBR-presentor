@@ -52,7 +52,8 @@ const PRESET_OPTIONS = [
 const screenSizeSet = computed(
     () => !!store.meta.screen_size && Number(store.meta.screen_size.width) !== 0
 )
-const following = computed(() => store.meta.screen_follow ?? false)
+
+const collapsed = ref(false)
 
 function onPresetChange() {
     const s = SCREEN_SIZES[selectedPreset.value]
@@ -85,24 +86,10 @@ async function saveSizes() {
     await updateCurrSelectedScreenEl()
 }
 
-async function toggleFollow() {
-    const newFollow = !following.value
-    await setRoomMeta({ screen_follow: newFollow })
-    if (newFollow && store.meta?.screen_el?.items?.length) {
-        await setRoomMeta({ refresh: Math.random() })
-        await updateCurrSelectedScreenEl()
-    }
-}
-
-async function refreshPos() {
-    await setRoomMeta({ refresh: Math.random() })
-    await updateCurrSelectedScreenEl()
-}
-
 onMounted(async () => {
     await OBR.contextMenu.create({
         id: 'dk.planeshifter.scrying',
-        icons: [{ icon: '/icon.svg', label: 'Sync2View', filter: {} }],
+        icons: [{ icon: '/icon.svg', label: 'Focus Item', filter: {} }],
         async onClick(_: any) {
             await setRoomMeta({ screen_el: _ })
             await OBR.notification.show('Moving screen to view', 'SUCCESS')
@@ -131,58 +118,149 @@ onMounted(async () => {
 
 <template>
     <div id="screen_control">
-        <h3>Screen Control</h3>
+        <div class="section-header">
+            <h3 @click="collapsed = !collapsed">
+                <span v-if="screenSizeSet" class="collapse-icon" :title="collapsed ? 'Expand' : 'Collapse'">{{ collapsed
+                    ? '▸' : '▾' }}
+                </span>
+                Screen Control
+            </h3>
+        </div>
         <div v-if="!screenSizeSet" class="warning">Input the size for the screen presentator</div>
-        <table class="screen_wrap">
-            <tbody>
-            <tr class="screen_inp_wrap">
-                <td colspan="3">
-                    <label for="selector">Screensizes:</label><br />
-                    <AppSelect
-                        id="selector"
-                        v-model="selectedPreset"
-                        :options="PRESET_OPTIONS"
-                        @change="onPresetChange"
-                    />
-                </td>
-            </tr>
-            <tr class="screen_inp_wrap">
-                <td><label for="width">Width:</label></td>
-                <td>
-                    <input
-                        id="width"
-                        class="screen_size"
-                        placeholder="0.00"
-                        v-model="width"
-                        @input="onSizeInput"
-                    />
-                </td>
-                <td rowspan="2">
-                    <button @click="switchWH" class="icon">↺</button>
-                </td>
-            </tr>
-            <tr class="screen_inp_wrap">
-                <td><label for="height">Height:</label></td>
-                <td>
-                    <input
-                        id="height"
-                        class="screen_size"
-                        placeholder="0.00"
-                        v-model="height"
-                        @input="onSizeInput"
-                    />
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <button
-            id="toggle_follow"
-            :class="following ? 'following' : 'not_following'"
-            @click="toggleFollow"
-        >
-            {{ following ? 'Following' : 'Not following' }}
-        </button>
-        <button id="refresh_pos" @click="refreshPos">Refresh</button>
+        <template v-if="!collapsed">
+            <details class="help">
+                <summary>Help</summary>
+                <p>Enter the physical width and height of your presentation display in inches. This lets the scale overlay and any map objects line up with real-world measurements.</p>
+                <ul>
+                    <li>Pick a preset from the dropdown, or type your dimensions manually.</li>
+                    <li>Use the <strong>↺</strong> button to swap width and height (e.g. for portrait orientation).</li>
+                    <li>Right-click any map object and choose <em>Resize to Screen size</em> to resize it to exactly match your display.</li>
+                    <li>Right-click any map object and choose <em>Focus Item</em> to jump the presentation screen to that object's position.</li>
+                </ul>
+            </details>
+            <table class="screen_wrap">
+                <tbody>
+                    <tr class="screen_inp_wrap">
+                        <td colspan="3">
+                            <label for="selector">Screensizes:</label><br />
+                            <AppSelect id="selector" v-model="selectedPreset" :options="PRESET_OPTIONS"
+                                @change="onPresetChange" />
+                        </td>
+                    </tr>
+                    <tr class="screen_inp_wrap">
+                        <td><label for="width">Width:</label></td>
+                        <td>
+                            <input id="width" class="screen_size" placeholder="0.00" v-model="width"
+                                @input="onSizeInput" />
+                        </td>
+                        <td rowspan="2">
+                            <button @click="switchWH" class="icon">↺</button>
+                        </td>
+                    </tr>
+                    <tr class="screen_inp_wrap">
+                        <td><label for="height">Height:</label></td>
+                        <td>
+                            <input id="height" class="screen_size" placeholder="0.00" v-model="height"
+                                @input="onSizeInput" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </template>
+        <div v-else class="collapsed-summary">{{ width }} × {{ height }} inches</div>
         <hr />
     </div>
 </template>
+
+<style scoped>
+.screen_inp_wrap {
+    text-align: left;
+}
+
+.screen_size {
+    width: 140px;
+}
+
+table.screen_wrap {
+    width: 100%;
+    border-spacing: 0 6px;
+}
+
+.warning {
+    font-size: 12.5px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    border-radius: 8px;
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    background: rgba(60, 10, 10, 0.6);
+}
+
+[data-theme="light"] .warning {
+    background: rgba(254, 226, 226, 0.8);
+    color: #991b1b;
+    border-color: rgba(220, 38, 38, 0.5);
+}
+
+button.icon {
+    padding: 6px;
+    width: min-content;
+    min-width: 48px;
+    font-size: 18px;
+    border-radius: 999px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
+.collapse-icon {
+    font-size: 16px;
+    /* color: var(--text-muted); */
+    cursor: pointer;
+    user-select: none;
+    line-height: 1;
+    transition: color 150ms ease;
+}
+
+.collapse-icon:hover {
+    color: var(--accent);
+}
+
+.collapsed-summary {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.help {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.help summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.help p,
+.help li {
+    line-height: 1.55;
+    margin: 4px 0;
+}
+
+.help ul {
+    padding-left: 16px;
+    margin: 6px 0;
+}
+</style>

@@ -53,6 +53,15 @@ onMounted(async () => {
     <div id="scene_control">
         <h3>Waypoints</h3>
         <div class="scene_wrap">
+            <details class="help">
+                <summary>Help</summary>
+                <p>Waypoints let you save named positions on the map and jump the presentation screen to them with a single click.</p>
+                <ul>
+                    <li>Right-click any map object and choose <em>Add Waypoint</em> to save it.</li>
+                    <li>Click a waypoint button to move the screen to that position.</li>
+                    <li>Use <strong>Edit waypoints</strong> to rename waypoints inline.</li>
+                </ul>
+            </details>
             <div id="scenelist">
                 <p v-if="!waypoints.length">Right-click an object and choose 'Add Waypoint'</p>
                 <button
@@ -70,8 +79,53 @@ onMounted(async () => {
                 </button>
             </div>
             <button @click="toggleEdit">{{ editMode ? '🔓 Edit waypoints' : '🔒 Edit waypoints' }}</button>
-            <button class="red" @click="clearWaypoints">Clear</button>
+            <button class="outlined dimmedBtn" @click="clearWaypoints">Clear</button>
             <hr />
         </div>
     </div>
 </template>
+
+<style scoped>
+span[contenteditable=true] {
+    border-bottom: 1px dashed rgba(187, 153, 255, 0.9);
+    padding-bottom: 1px;
+}
+
+[data-theme="light"] span[contenteditable=true] {
+    border-bottom-color: rgba(109, 40, 217, 0.7);
+}
+
+button.isActiveWaypoint::before {
+    content: "📍 ";
+}
+
+button.outlined.isActiveWaypoint {
+    background-color: var(--btn-active-bg);
+    border-color: var(--accent);
+    color: var(--btn-active-color);
+}
+
+.help {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.help summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.help p,
+.help li {
+    line-height: 1.55;
+    margin: 4px 0;
+}
+
+.help ul {
+    padding-left: 16px;
+    margin: 6px 0;
+}
+</style>

@@ -41,6 +41,15 @@ async function clearScreenUser() {
 <template>
     <div id="playerlist_cont">
         <h3>Players:</h3>
+        <details class="help">
+            <summary>Help</summary>
+            <p>Lock the presentation screen to a specific player's perspective instead of your own.</p>
+            <ul>
+                <li>Click a player to set them as the screen target. The 📺 icon marks the active selection.</li>
+                <li>The player will follow the active map object.</li>
+                <li>Click <strong>Clear</strong> to clear selection.</li>
+            </ul>
+        </details>
         <div id="playerlist">
             <button
                 v-for="p in sortedPlayers"
@@ -52,7 +61,48 @@ async function clearScreenUser() {
                 {{ p.name }}
             </button>
         </div>
-        <button class="red" @click="clearScreenUser">Clear</button>
+        <button class="outlined dimmedBtn" @click="clearScreenUser">Clear</button>
         <hr />
     </div>
 </template>
+
+<style scoped>
+#playerlist button {
+    display: block;
+    text-align: left;
+}
+
+button.isScreen::before {
+    content: "📺 ";
+}
+
+button.outlined.isScreen {
+    background-color: var(--btn-active-bg);
+    border-color: var(--accent);
+    color: var(--btn-active-color);
+}
+
+.help {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.help summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.help p,
+.help li {
+    line-height: 1.55;
+    margin: 4px 0;
+}
+
+.help ul {
+    padding-left: 16px;
+    margin: 6px 0;
+}
+</style>

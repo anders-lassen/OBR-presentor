@@ -50,7 +50,6 @@ body {
     min-width: 320px;
     min-height: 100%;
     color: var(--text-primary);
-    /* background-color: var(--bg-base); */
 }
 
 
@@ -60,7 +59,6 @@ body {
 
 .app-shell {
     display: grid;
-    gap: 14px;
     grid-template-columns: 1.08fr 1fr;
     align-items: start;
 }
@@ -73,6 +71,7 @@ body {
 
 .hero-panel {
     padding: 22px;
+    padding-bottom: 0;
 }
 
 .hero-eyebrow {
@@ -95,31 +94,6 @@ h3 {
 h1 {
     margin-top: 8px;
     font-size: clamp(22px, 4vw, 28px);
-}
-
-.hero-panel p {
-    margin: 10px 0 0;
-    color: var(--text-secondary);
-    max-width: 46ch;
-    font-size: 13.5px;
-    line-height: 1.6;
-}
-
-.hero-meta {
-    margin-top: 18px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.hero-meta span {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--accent);
-    border: 1px solid var(--accent-dim);
-    border-radius: 999px;
-    padding: 4px 12px;
-    background: rgba(192, 132, 252, 0.1);
 }
 
 .control-panel {
@@ -156,20 +130,6 @@ h3 {
     font-weight: 600;
     color: var(--accent);
     letter-spacing: 0em;
-}
-
-.warning {
-    font-size: 12.5px;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-    border-radius: 8px;
-    margin: 0 0 10px;
-    padding: 8px 12px;
-    background: rgba(60, 10, 10, 0.6);
-}
-
-.screen_inp_wrap {
-    text-align: left;
 }
 
 input {
@@ -257,18 +217,6 @@ button.dimmedBtn:hover {
     background-color: rgba(255, 255, 255, 0.06);
 }
 
-button.following {
-    background-color: var(--ok);
-    border: none;
-    color: #ffffff;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
-}
-
-button.following:hover {
-    background-color: #16a34a;
-}
-
-button.not_following,
 button.red {
     background-color: var(--danger);
     border: none;
@@ -276,89 +224,14 @@ button.red {
     box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
 }
 
-button.not_following:hover,
 button.red:hover {
     background-color: #dc2626;
-}
-
-button.isScreen::before {
-    content: "📺 ";
-}
-
-button.isActiveWaypoint::before {
-    content: "📍 ";
-}
-
-button.outlined.isScreen, button.outlined.isActiveWaypoint {
-    background-color: var(--btn-active-bg);
-    border-color: var(--accent);
-    color: var(--btn-active-color);
-}
-
-button.icon {
-    padding: 6px;
-    width: min-content;
-    min-width: 48px;
-    font-size: 18px;
-    border-radius: 999px;
 }
 
 hr {
     border: none;
     border-top: 1px solid var(--border-soft);
     margin: 12px 0;
-}
-
-#playerlist button {
-    display: block;
-    text-align: left;
-}
-
-.screen_size {
-    width: 140px;
-}
-
-table.screen_wrap {
-    width: 100%;
-    border-spacing: 0 6px;
-}
-
-#present_tool {
-    margin-bottom: 10px;
-}
-
-#present_tool #presUrl {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-#present_tool #urlBtn {
-    width: fit-content;
-    margin: 0;
-}
-
-div#leftbar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    cursor: col-resize;
-    z-index: 999999;
-    height: 100vh;
-    padding: 50vh 0;
-    user-select: none;
-}
-
-div#leftbar span#resize {
-    font-weight: 700;
-    font-size: 19px;
-    color: rgba(187, 153, 255, 0.8);
-}
-
-span[contenteditable=true] {
-    border-bottom: 1px dashed rgba(187, 153, 255, 0.9);
-    padding-bottom: 1px;
 }
 
 ::-webkit-scrollbar {
@@ -385,6 +258,7 @@ span[contenteditable=true] {
 
     .hero-panel {
         padding: 16px;
+        padding-bottom: 0;
     }
 
     .control-panel {
@@ -436,12 +310,6 @@ span[contenteditable=true] {
     --option-hover-color: rgba(0, 0, 0, 0.87);
 }
 
-[data-theme="light"] .warning {
-    background: rgba(254, 226, 226, 0.8);
-    color: #991b1b;
-    border-color: rgba(220, 38, 38, 0.5);
-}
-
 [data-theme="light"] button.dimmedBtn {
     border-color: rgba(0, 0, 0, 0.2);
     color: var(--text-secondary);
@@ -451,12 +319,4 @@ span[contenteditable=true] {
     border-color: rgba(0, 0, 0, 0.35);
     color: var(--text-primary);
     background-color: rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] div#leftbar span#resize {
-    color: rgba(109, 40, 217, 0.65);
-}
-
-[data-theme="light"] span[contenteditable=true] {
-    border-bottom-color: rgba(109, 40, 217, 0.7);
 }

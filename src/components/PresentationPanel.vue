@@ -129,17 +129,56 @@ onMounted(() => {
 
 <template>
     <div id="present_tool">
+        <h3>Presentation</h3>
+        <details class="help">
+            <summary>Help</summary>
+            <p>
+                Use this panel to mirror an Owlbear Rodeo room onto a second screen (e.g. a TV or
+                projector) via the browser's
+                <a
+                    href="https://developer.mozilla.org/en-US/docs/Web/API/Presentation_API"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Presentation API</a
+                >.
+            </p>
+            <ol>
+                <li>
+                    Paste the room URL or just the slug
+                    (<code>RoomId/RoomName</code>) and click <strong>Save</strong>.
+                </li>
+                <li>
+                    Click <strong>Present</strong> to open the room on the connected display.
+                </li>
+                <li>
+                    Use <strong>Disconnect</strong> to detach without closing, or
+                    <strong>Stop</strong> to terminate the presentation entirely.
+                </li>
+                <li>
+                    If the display was previously connected you can click
+                    <strong>Reconnect</strong> to restore the session.
+                </li>
+            </ol>
+            <p>
+                The "No presentation displays available" warning means the browser cannot detect a
+                second screen. Make sure the display is connected and the browser supports the
+                Presentation API (Chrome / Edge recommended).
+            </p>
+        </details>
+
         <span v-if="!isAvailable" id="nonAvailWarn">No presentation displays available.</span>
 
         <template v-if="!presentationEnabled">
             <div id="presUrl">
+                <label for="presUrlInput">URL</label>
                 <input
+                    id="presUrlInput"
                     v-model="urlInputValue"
                     type="text"
                     placeholder="A7W0upefDl8r/TheMysticMirror"
                 />
-                <button @click="saveUrl">Save</button>
             </div>
+            <button @click="saveUrl">Save</button>
         </template>
 
         <template v-else>
@@ -163,3 +202,45 @@ onMounted(() => {
         <hr />
     </div>
 </template>
+
+<style scoped>
+#present_tool {
+    margin-bottom: 10px;
+}
+
+#presUrl {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+#urlBtn {
+    width: fit-content;
+    margin: 0;
+}
+
+.help {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.help summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.help p,
+.help li {
+    line-height: 1.55;
+    margin: 4px 0;
+}
+
+.help ol {
+    padding-left: 16px;
+    margin: 6px 0;
+}
+</style>

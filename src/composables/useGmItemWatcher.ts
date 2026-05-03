@@ -13,7 +13,18 @@ export function useGmItemWatcher() {
 
     async function handleGmItems(items: any[]) {
         if (!await OBR.scene.isReady()) return
-        if (!store.meta.screen_follow) return
+
+        // Animate GM's own viewport when following a waypoint token
+        const waypointId = store.meta.screen_waypoint_id
+        if (store.meta.screen_waypoint_follow_gm && waypointId) {
+            const movedItem = items.find((i: any) => i.id === waypointId)
+            if (movedItem) {
+                const newBounds = await OBR.scene.items.getItemBounds([waypointId])
+                if (newBounds) await OBR.viewport.animateToBounds(JSON.parse(JSON.stringify(newBounds)))
+            }
+        }
+
+        if (!store.meta.screen_follow && !store.meta.screen_waypoint_follow) return
         if (!store.meta?.screen_el?.items?.length) return
 
         const screenItemIds = store.meta.screen_el.items.map((i: any) => i.id)

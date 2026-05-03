@@ -9,6 +9,7 @@ import WaypointList from './SceneList.vue'
 import { useObrMeta } from '../composables/useObrMeta'
 import { useGmItemWatcher } from '../composables/useGmItemWatcher'
 import { useResize } from '../composables/useResize'
+import ScreenElControl from './ScreenElControl.vue'
 
 const { getRoomMeta } = useObrMeta()
 const { handleGmItems } = useGmItemWatcher()
@@ -40,6 +41,8 @@ const isDev = location.toString().includes('localhost')
         <ScreenControl />
         <PlayerList />
         <FollowControl /> 
+        <ScreenElControl />
+
         <WaypointList />
         <button class="red" @click="clearMeta">Clear Meta</button>
         <template v-if="isDev">

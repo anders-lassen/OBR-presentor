@@ -48,7 +48,7 @@ OBR.onReady(async () => {
             </div>
             <span type="button" class="hide-toggle" @click="toggleIntro"
                 :title="hideIntro ? '▶ Show description' : '▼ Hide description'"
-                :aria-expanded="(!hideIntro).toString()">
+                :aria-expanded="!hideIntro">
                 <template v-if="hideIntro">
                     <span class="toggle-icon">▶</span> Show description
                 </template>
@@ -58,7 +58,7 @@ OBR.onReady(async () => {
             </span>
             <template v-if="!hideIntro">
                 <p>
-                    Display your battle map on a second screen — a TV, monitor, or projector — while
+                    Display your battle map on a second screen — a TV, monitor, projector, or a user's device — while
                     you keep full GM controls on your own device. The screen follows your view
                     automatically or snaps to any waypoint you place on the map.
                 </p>

@@ -46,15 +46,16 @@ OBR.onReady(async () => {
             <div class="hero-title-row">
                 <h1>Mystic Mirror</h1>
             </div>
-            <div class="hide-toggle" @click="toggleIntro"
-                :title="hideIntro ? '▶ Show description' : '▼ Hide description'">
+            <button type="button" class="hide-toggle" @click="toggleIntro"
+                :title="hideIntro ? '▶ Show description' : '▼ Hide description'"
+                :aria-expanded="(!hideIntro).toString()">
                 <template v-if="hideIntro">
                     <span class="toggle-icon">▶</span> Show description
                 </template>
                 <template v-else>
                     <span class="toggle-icon">▼</span> Hide description
                 </template>
-            </div>
+            </button>
             <template v-if="!hideIntro">
                 <p>
                     Display your battle map on a second screen — a TV, monitor, or projector — while

@@ -12,10 +12,6 @@ onMounted(async () => {
     OBR.party.onChange((party) => {
         store.players = party as any
     })
-
-    OBR.action.onOpenChange(() => {
-        console.log('open changed')
-    })
 })
 
 const sortedPlayers = computed(() =>

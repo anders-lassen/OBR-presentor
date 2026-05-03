@@ -8,7 +8,6 @@ const { setRoomMeta } = useObrMeta()
 const { updateCurrSelectedScreenEl } = useScreenControl()
 
 const following = computed(() => store.meta.screen_follow ?? false)
-
 async function toggleFollow() {
     const newFollow = !following.value
     await setRoomMeta({ screen_follow: newFollow })
@@ -18,18 +17,14 @@ async function toggleFollow() {
     }
 }
 
-async function refreshPos() {
-    await setRoomMeta({ refresh: Math.random() })
-    await updateCurrSelectedScreenEl()
-}
 </script>
 
 <template>
     <div id="follow_control">
         <button id="toggle_follow" :class="following ? 'following' : 'not_following'" @click="toggleFollow">
-            {{ following ? 'Following' : 'Not following' }}
+            {{ following ? '👤 Following' : '👤 Not following' }}
         </button>
-        <button id="refresh_pos" @click="refreshPos">Refresh</button>
+        <p></p>
     </div>
     <hr />
 
@@ -57,4 +52,6 @@ button.not_following {
 button.not_following:hover {
     background-color: #dc2626;
 }
+
+
 </style>

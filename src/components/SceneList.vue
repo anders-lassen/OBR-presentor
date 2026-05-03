@@ -1,14 +1,56 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import OBR from '@owlbear-rodeo/sdk'
 import { store } from '../composables/useStore'
 import { useObrMeta } from '../composables/useObrMeta'
 import type { Waypoint } from '../types'
+import { useGmItemWatcher } from '../composables/useGmItemWatcher'
 
 const { setRoomMeta } = useObrMeta()
+const { handleGmItems } = useGmItemWatcher()
+
 const editMode = ref(false)
 
 const waypoints = computed<Waypoint[]>(() => store.meta.waypoints ?? [])
+const activeWaypointId = computed(() => store.meta.screen_waypoint_id)
+const waypointFollow = computed(() => store.meta.screen_waypoint_follow ?? false)
+const waypointFollowGm = computed(() => store.meta.screen_waypoint_follow_gm ?? false)
+
+async function toggleWaypointFollowGm() {
+    const newVal = !waypointFollowGm.value
+    await setRoomMeta({ screen_waypoint_follow_gm: newVal })
+    if (newVal && activeWaypointId.value) {
+        const activeWaypoint = waypoints.value.find(w => w.id === activeWaypointId.value)
+        if (activeWaypoint) {
+            const freshBounds = await OBR.scene.items.getItemBounds([activeWaypoint.id])
+            if (freshBounds) await handleGmItems(await OBR.scene.items.getItems() as any[])
+
+        }
+    }
+}
+
+async function toggleWaypointFollow() {
+    const newVal = !waypointFollow.value
+    if (newVal && activeWaypointId.value) {
+        const activeWaypoint = waypoints.value.find(w => w.id === activeWaypointId.value)
+        if (activeWaypoint) {
+            const freshBounds = await OBR.scene.items.getItemBounds([activeWaypoint.id])
+            await setRoomMeta({
+                screen_el: { ...activeWaypoint._, selectionBounds: freshBounds ?? activeWaypoint._?.selectionBounds },
+                screen_waypoint_follow: true,
+            })
+            return
+        }
+    }
+    await setRoomMeta({ screen_waypoint_follow: newVal })
+}
+
+// Turn off waypoint follow when no waypoint is active
+watch(activeWaypointId, async (id) => {
+    if (!id && waypointFollow.value) {
+        await setRoomMeta({ screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
+    }
+})
 
 async function toggleEdit() {
     editMode.value = !editMode.value
@@ -19,8 +61,21 @@ async function toggleEdit() {
 
 async function selectWaypoint(waypoint: Waypoint) {
     if (editMode.value) return
-    await setRoomMeta({ screen_el: waypoint._, screen_waypoint_id: waypoint.id })
-    await OBR.notification.show('Waypoint selected', 'SUCCESS')
+    if (store.meta?.screen_waypoint_id === waypoint.id) {
+        await setRoomMeta({ screen_waypoint_id: undefined, screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
+        await OBR.notification.show('Waypoint deselected', 'DEFAULT')
+    } else {
+        const freshBounds = await OBR.scene.items.getItemBounds([waypoint.id])
+        const screenEl = {
+            ...waypoint._,
+            selectionBounds: freshBounds ?? waypoint._?.selectionBounds,
+        }
+        await setRoomMeta({ screen_el: screenEl, screen_waypoint_id: waypoint.id })
+        if (waypointFollowGm.value && freshBounds) {
+            await OBR.viewport.animateToBounds(JSON.parse(JSON.stringify(freshBounds)))
+        }
+        await OBR.notification.show('Waypoint selected', 'SUCCESS')
+    }
 }
 
 async function clearWaypoints() {
@@ -55,7 +110,8 @@ onMounted(async () => {
         <div class="scene_wrap">
             <details class="help">
                 <summary>Help</summary>
-                <p>Waypoints let you save named positions on the map and jump the presentation screen to them with a single click.</p>
+                <p>Waypoints let you save named positions on the map and jump the presentation screen to them with a
+                    single click.</p>
                 <ul>
                     <li>Right-click any map object and choose <em>Add Waypoint</em> to save it.</li>
                     <li>Click a waypoint button to move the screen to that position.</li>
@@ -64,21 +120,24 @@ onMounted(async () => {
             </details>
             <div id="scenelist">
                 <p v-if="!waypoints.length">Right-click an object and choose 'Add Waypoint'</p>
-                <button
-                    v-for="waypoint in waypoints"
-                    :key="waypoint.id"
+                <button v-for="waypoint in waypoints" :key="waypoint.id"
                     :class="{ isActiveWaypoint: store.meta?.screen_waypoint_id === waypoint.id, outlined: true }"
-                    :disabled="editMode"
-                    @click="selectWaypoint(waypoint)"
-                >
-                    <span
-                        :contenteditable="editMode"
-                        @blur="updateWaypointName(waypoint, $event)"
-                        @keydown.enter.prevent="($event.target as HTMLElement).blur()"
-                    >{{ waypoint.name }}</span>
+                    :disabled="editMode" @click="selectWaypoint(waypoint)">
+                    <span :contenteditable="editMode" @blur="updateWaypointName(waypoint, $event)"
+                        @keydown.enter.prevent="($event.target as HTMLElement).blur()">{{ waypoint.name }}</span>
                 </button>
             </div>
             <button @click="toggleEdit">{{ editMode ? '🔓 Edit waypoints' : '🔒 Edit waypoints' }}</button>
+            <p></p>
+            <button v-if="activeWaypointId" :class="waypointFollow ? 'waypointFollowing' : 'waypointNotFollowing'"
+                @click="toggleWaypointFollow">
+                {{ waypointFollow ? '👤 Player Following' : '👤 Player Follow' }}
+            </button>
+            <button v-if="activeWaypointId" :class="waypointFollowGm ? 'waypointFollowing' : 'waypointNotFollowing'"
+                @click="toggleWaypointFollowGm">
+                {{ waypointFollowGm ? '🧙 GM following' : '🧙 GM follow' }}
+            </button>
+            <p></p>
             <button class="outlined dimmedBtn" @click="clearWaypoints">Clear</button>
             <hr />
         </div>
@@ -127,5 +186,22 @@ button.outlined.isActiveWaypoint {
 .help ul {
     padding-left: 16px;
     margin: 6px 0;
+}
+
+button.waypointFollowing {
+    background-color: var(--ok);
+    border: none;
+    color: #ffffff;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+}
+
+button.waypointFollowing:hover {
+    background-color: #16a34a;
+}
+
+button.waypointNotFollowing {
+    background-color: var(--surface-2, #444);
+    border: none;
+    color: var(--text-secondary);
 }
 </style>

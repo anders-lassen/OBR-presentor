@@ -22,6 +22,8 @@ export interface RoomMeta {
     screen_el?: ScreenEl
     screen_waypoint_id?: string
     screen_follow?: boolean
+    screen_waypoint_follow?: boolean
+    screen_waypoint_follow_gm?: boolean
     presUrl?: string
     presId?: string | null
     waypoints?: Waypoint[]

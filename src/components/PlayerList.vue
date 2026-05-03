@@ -42,22 +42,23 @@ async function clearScreenUser() {
             <p>Lock the presentation screen to a specific player's perspective instead of your own.</p>
             <ul>
                 <li>Click a player to set them as the screen target. The 📺 icon marks the active selection.</li>
+                <li>If no player is selected, all players will be considered the screen target.</li>
                 <li>The player will follow the active map object.</li>
-                <li>Click <strong>Clear</strong> to clear selection.</li>
+                <li>Click <strong>Clear selection</strong> to clear the screen target.</li>
+                <li>
+                    Turn on Follow to automatically sync to the currently selected screen element. Turn it off to stop
+                    syncing. Re-sync happens automatically when Follow is enabled, or the screen element changes.
+                </li>
             </ul>
         </details>
         <div id="playerlist">
-            <button
-                v-for="p in sortedPlayers"
-                :key="p.id"
+            <button v-for="p in sortedPlayers" :key="p.id"
                 :class="{ isScreen: store.meta.screen_id == p.id, outlined: true }"
-                :style="{ color: p.color, borderColor: p.color }"
-                @click="selectPlayer(p.id)"
-            >
+                :style="{ color: p.color, borderColor: p.color }" @click="selectPlayer(p.id)">
                 {{ p.name }}
             </button>
         </div>
-        <button class="outlined dimmedBtn" @click="clearScreenUser">Clear</button>
+        <button class="outlined dimmedBtn" @click="clearScreenUser">Clear selection</button>
         <hr />
     </div>
 </template>

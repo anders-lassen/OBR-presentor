@@ -91,7 +91,7 @@ onMounted(async () => {
         id: 'dk.planeshifter.scrying',
         icons: [{ icon: '/icon.svg', label: 'Focus Item', filter: {} }],
         async onClick(_: any) {
-            await setRoomMeta({ screen_el: _ })
+            await setRoomMeta({ screen_el: _, screen_waypoint_id: undefined, screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
             await OBR.notification.show('Moving screen to view', 'SUCCESS')
         },
     })
@@ -136,6 +136,7 @@ onMounted(async () => {
                     <li>Use the <strong>↺</strong> button to swap width and height (e.g. for portrait orientation).</li>
                     <li>Right-click any map object and choose <em>Resize to Screen size</em> to resize it to exactly match your display.</li>
                     <li>Right-click any map object and choose <em>Focus Item</em> to jump the presentation screen to that object's position.</li>
+                    <li>Don't see your screen size? Calculate it manually using a ruler or measuring tape. Remember inches are used for measurements.</li>
                 </ul>
             </details>
             <table class="screen_wrap">

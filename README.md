@@ -16,7 +16,7 @@ It lets a GM bind one or more scene shapes to a dedicated screen player, so that
 
 Requirements:
 
-- Node.js 18+
+- Node.js 24+
 
 Install:
 
@@ -54,5 +54,5 @@ To test in Owlbear Rodeo:
 ## Notes
 
 - Room metadata key: `dk.planeshifter.scrying`
-- Main control panel entry: `main.js`
-- Tracker helper entry: `shapeTracker.html` + `tracker.js`
+- Main control panel entry: `/src/main.ts`
+- Tracker helper entry: `shapeTracker.html` + `/src/tracker.ts`

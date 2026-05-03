@@ -126,7 +126,7 @@ onMounted(async () => {
                 Screen Control
             </h3>
         </div>
-        <div v-if="!screenSizeSet" class="warning">Input the size for the screen presentator</div>
+        <div v-if="!screenSizeSet" class="warning">Input the size for the screen presenter</div>
         <template v-if="!collapsed">
             <details class="help">
                 <summary>Help</summary>

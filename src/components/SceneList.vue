@@ -204,7 +204,6 @@ button.waypointFollowing {
     background-color: var(--ok);
     border: none;
     color: #ffffff;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
 }
 
 button.waypointFollowing:hover {
@@ -229,15 +228,11 @@ button.waypointNotFollowing {
 
 button.delete-waypoint {
     flex-shrink: 0;
-    /* padding: 2px 6px; */
     background: transparent;
     border: 1px solid rgba(200, 80, 80, 0.5);
     color: rgba(200, 80, 80, 0.8);
     width: fit-content;
     min-width: 24px;
-    /* border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px; */
 }
 
 button.delete-waypoint:hover {

@@ -105,7 +105,6 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onOutsideClick))
 
 .app-select__trigger:focus-visible {
     border-color: var(--btn-outlined-border);
-    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .app-select--open .app-select__trigger {

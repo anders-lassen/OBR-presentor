@@ -59,8 +59,12 @@ async function toggleEdit() {
     }
 }
 
-async function selectWaypoint(waypoint: Waypoint) {
-    if (editMode.value) return
+async function selectWaypoint(waypoint: Waypoint, event?: MouseEvent) {
+    if (editMode.value) {
+        const span = (event?.currentTarget as HTMLElement)?.querySelector('span[contenteditable]') as HTMLElement
+        span?.focus()
+        return
+    }
     if (store.meta?.screen_waypoint_id === waypoint.id) {
         await setRoomMeta({ screen_waypoint_id: undefined, screen_waypoint_follow: false, screen_waypoint_follow_gm: false })
         await OBR.notification.show('Waypoint deselected', 'DEFAULT')
@@ -86,6 +90,11 @@ async function clearWaypoints() {
 
 function updateWaypointName(waypoint: Waypoint, event: Event) {
     waypoint.name = (event.target as HTMLElement).textContent ?? ''
+}
+
+async function deleteWaypoint(waypoint: Waypoint) {
+    store.meta.waypoints = store.meta.waypoints?.filter(w => w.id !== waypoint.id) ?? []
+    await setRoomMeta({ waypoints: store.meta.waypoints })
 }
 
 onMounted(async () => {
@@ -120,12 +129,15 @@ onMounted(async () => {
             </details>
             <div id="scenelist">
                 <p v-if="!waypoints.length">Right-click an object and choose 'Add Waypoint'</p>
-                <button v-for="waypoint in waypoints" :key="waypoint.id"
-                    :class="{ isActiveWaypoint: store.meta?.screen_waypoint_id === waypoint.id, outlined: true }"
-                    :disabled="editMode" @click="selectWaypoint(waypoint)">
-                    <span :contenteditable="editMode" @blur="updateWaypointName(waypoint, $event)"
-                        @keydown.enter.prevent="($event.target as HTMLElement).blur()">{{ waypoint.name }}</span>
-                </button>
+                <div v-for="waypoint in waypoints" :key="waypoint.id" class="waypoint-row">
+                    <button
+                        :class="{ isActiveWaypoint: store.meta?.screen_waypoint_id === waypoint.id, outlined: true }"
+                        @click="selectWaypoint(waypoint, $event)">
+                        <span :contenteditable="editMode" @blur="updateWaypointName(waypoint, $event)"
+                            @keydown.enter.prevent="($event.target as HTMLElement).blur()">{{ waypoint.name }}</span>
+                    </button>
+                    <button v-if="editMode" class="delete-waypoint" @click="deleteWaypoint(waypoint)" title="Delete waypoint">✕</button>
+                </div>
             </div>
             <button @click="toggleEdit">{{ editMode ? '🔓 Edit waypoints' : '🔒 Edit waypoints' }}</button>
             <p></p>
@@ -203,5 +215,32 @@ button.waypointNotFollowing {
     background-color: var(--surface-2, #444);
     border: none;
     color: var(--text-secondary);
+}
+
+.waypoint-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.waypoint-row button:first-child {
+    flex-grow: 1;
+}
+
+button.delete-waypoint {
+    flex-shrink: 0;
+    /* padding: 2px 6px; */
+    background: transparent;
+    border: 1px solid rgba(200, 80, 80, 0.5);
+    color: rgba(200, 80, 80, 0.8);
+    width: fit-content;
+    min-width: 24px;
+    /* border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px; */
+}
+
+button.delete-waypoint:hover {
+    background-color: rgba(200, 80, 80, 0.15);
 }
 </style>

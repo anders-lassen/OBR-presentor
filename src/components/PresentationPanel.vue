@@ -61,10 +61,10 @@ function enablePresentation() {
     presentationEnabled.value = true
 
     if (typeof navigator !== 'undefined' && (navigator as any).presentation && request) {
-        ;(navigator as any).presentation.defaultRequest = new PresentationRequest(presUrls.value)
-        ;(navigator as any).presentation.defaultRequest.onconnectionavailable = (evt: any) => {
-            setConn(evt.connection)
-        }
+        ; (navigator as any).presentation.defaultRequest = new PresentationRequest(presUrls.value)
+            ; (navigator as any).presentation.defaultRequest.onconnectionavailable = (evt: any) => {
+                setConn(evt.connection)
+            }
     }
 
     reconnect()
@@ -135,12 +135,8 @@ onMounted(() => {
             <p>
                 Use this panel to mirror an Owlbear Rodeo room onto a second screen (e.g. a TV or
                 projector) via the browser's
-                <a
-                    href="https://developer.mozilla.org/en-US/docs/Web/API/Presentation_API"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >Presentation API</a
-                >.
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Presentation_API" target="_blank"
+                    rel="noopener noreferrer">Presentation API</a>.
             </p>
             <ol>
                 <li>
@@ -171,27 +167,17 @@ onMounted(() => {
         <template v-if="!presentationEnabled">
             <div id="presUrl">
                 <label for="presUrlInput">URL</label>
-                <input
-                    id="presUrlInput"
-                    v-model="urlInputValue"
-                    type="text"
-                    placeholder="A7W0upefDl8r/TheMysticMirror"
-                />
+                <input id="presUrlInput" v-model="urlInputValue" type="text"
+                    placeholder="https://www.owlbear.rodeo/room/A7W0upefDl8r/TheMysticMirror" />
             </div>
             <button @click="saveUrl">Save</button>
         </template>
 
         <template v-else>
-            <button
-                v-if="connState === 'idle' || connState === 'disconnected'"
-                @click="startPresentation"
-            >
+            <button v-if="connState === 'idle' || connState === 'disconnected'" @click="startPresentation">
                 Present
             </button>
-            <button
-                v-if="connState === 'disconnected' && store.meta.presId"
-                @click="reconnect"
-            >
+            <button v-if="connState === 'disconnected' && store.meta.presId" @click="reconnect">
                 Reconnect
             </button>
             <button v-if="connState === 'connected'" @click="disconnectPresentation">

@@ -5,6 +5,7 @@
     "icon": "https://obr-presentor.vercel.app/crystal-ball-white.png",
     "description": "Sync a selected player viewport to scene shapes for TV-table and in-person display setups.",
     "author": "OriginalCopy",
+    "homepage_url": "https://github.com/anders-lassen/OBR-presentor",
     "action": {
         "title": "Mystic Mirror",
         "icon": "/crystal-ball.png",

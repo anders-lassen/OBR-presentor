@@ -21,10 +21,8 @@ async function toggleWaypointFollowGm() {
     await setRoomMeta({ screen_waypoint_follow_gm: newVal })
     if (newVal && activeWaypointId.value) {
         const activeWaypoint = waypoints.value.find(w => w.id === activeWaypointId.value)
-        if (activeWaypoint) {
-            const freshBounds = await OBR.scene.items.getItemBounds([activeWaypoint.id])
-            if (freshBounds) await handleGmItems(await OBR.scene.items.getItems() as any[])
-
+        if (activeWaypoint?._) {
+            await handleGmItems([activeWaypoint._] as any[])
         }
     }
 }

@@ -74,7 +74,25 @@ async function selectWaypoint(waypoint: Waypoint, event?: MouseEvent) {
         }
         await setRoomMeta({ screen_el: screenEl, screen_waypoint_id: waypoint.id })
         if (waypointFollowGm.value && freshBounds) {
-            await OBR.viewport.animateToBounds(JSON.parse(JSON.stringify(freshBounds)))
+            let gmBounds = JSON.parse(JSON.stringify(freshBounds))
+            const _w = Number(store.meta.screen_size?.width ?? 0)
+            const _h = Number(store.meta.screen_size?.height ?? 0)
+            if (_w > 0 && _h > 0) {
+                const dpi = await OBR.scene.grid.getDpi()
+                const minWidth = _w * dpi
+                const minHeight = _h * dpi
+                if (
+                    gmBounds.max.x - gmBounds.min.x < minWidth ||
+                    gmBounds.max.y - gmBounds.min.y < minHeight
+                ) {
+                    gmBounds = {
+                        ...gmBounds,
+                        max: { y: gmBounds.center.y + minHeight / 2, x: gmBounds.center.x + minWidth / 2 },
+                        min: { y: gmBounds.center.y - minHeight / 2, x: gmBounds.center.x - minWidth / 2 },
+                    }
+                }
+            }
+            await OBR.viewport.animateToBounds(gmBounds)
         }
         await OBR.notification.show('Waypoint selected', 'SUCCESS')
     }

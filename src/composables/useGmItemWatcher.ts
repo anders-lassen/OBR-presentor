@@ -16,6 +16,7 @@ export function useGmItemWatcher() {
 
         // Animate GM's own viewport when following a waypoint token
         const waypointId = store.meta.screen_waypoint_id
+        
         if (store.meta.screen_waypoint_follow_gm && waypointId) {
             const movedItem = items.find((i: any) => i.id === waypointId)
             if (movedItem) {
